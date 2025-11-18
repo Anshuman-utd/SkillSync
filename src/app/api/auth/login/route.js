@@ -41,14 +41,11 @@ export async function POST(request) {
     );
 
     // FIX: Set the login cookie
-    response.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
-
-    return response;
+    return NextResponse.json(
+      { message: 'Login successful', token },
+      { status: 200 }
+    );
+    
 
   } catch (error) {
     console.error(error);
