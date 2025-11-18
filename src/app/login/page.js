@@ -18,7 +18,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
+      const res = await login(email, password);
+
+      localStorage.setItem("token",res.token)
       router.push('/');
       router.refresh();
     } catch (err) {
@@ -89,7 +91,7 @@ export default function LoginPage() {
 
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don't have an account?{' '}
+              Dont have an account?{' '}
               <Link href="/signup" className="font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400">
                 Sign up
               </Link>

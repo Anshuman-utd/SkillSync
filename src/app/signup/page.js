@@ -19,7 +19,8 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      await signup(name, email, password);
+      const res = await signup(name, email, password);
+      localStorage.setItem("token",res.token)
       router.push('/');
       router.refresh();
     } catch (err) {
