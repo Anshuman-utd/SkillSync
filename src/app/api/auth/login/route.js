@@ -7,7 +7,6 @@ export async function POST(request) {
   try {
     const { email, password } = await request.json();
 
-    // Validate input
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -15,10 +14,7 @@ export async function POST(request) {
       );
     }
 
-    // Fetch user from the database using Prisma
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       return NextResponse.json(
@@ -27,23 +23,33 @@ export async function POST(request) {
       );
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
-    // Generate token
-    const token = generateToken({ id: user.id, email: user.email });
+    // Create JWT
+    const token = generateToken({ userId: user.id, email: user.email });
 
-    // Return token to the client
-    return NextResponse.json(
-      { message: 'Login successful', token },
+    // Create response
+    const response = NextResponse.json(
+      { message: 'Login successful', user },
       { status: 200 }
     );
+
+    // FIX: Set the login cookie
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return response;
+
   } catch (error) {
     console.error(error);
     return NextResponse.json(
