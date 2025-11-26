@@ -12,6 +12,10 @@ export default function LogoutButton() {
     setLoading(true);
     try {
       await logout();
+      // Notify the app that auth has changed
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:changed', { detail: { user: null } }));
+      }
       router.push('/login');
       router.refresh();
     } catch (error) {

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import LogoutButton from '@/components/LogoutButton';
 
 function InitialsAvatar({ name }) {
@@ -21,24 +22,40 @@ function InitialsAvatar({ name }) {
 export default function Navbar() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          setUser(null);
-        }
-      } catch (e) {
+  // Helper to load the current user
+  const loadUser = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      } else {
         setUser(null);
-      } finally {
-        setLoading(false);
       }
+    } catch (e) {
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    fetchUser();
+  };
+
+  // Load on mount and whenever the pathname changes (e.g., after logout redirect)
+  useEffect(() => {
+    setLoading(true);
+    loadUser();
+  }, [pathname]);
+
+  // Listen for auth change events (e.g., triggered by Logout)
+  useEffect(() => {
+    const handler = (e) => {
+      const nextUser = e.detail?.user ?? null;
+      setUser(nextUser);
+      setLoading(false);
+    };
+    window.addEventListener('auth:changed', handler);
+    return () => window.removeEventListener('auth:changed', handler);
   }, []);
 
   return (
