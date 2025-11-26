@@ -14,11 +14,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  STUDENT
+  MENTOR
+}
+
 model User {
-  id        Int   @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String?
-  password String
+  password  String
+  role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relations
+  student   Student?
+  mentor    Mentor?
+}
+
+model Student {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  // Optional profile fields
+  bio       String?
+  interests String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Mentor {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id])
+  // Optional profile fields
+  bio        String?
+  expertise  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

@@ -38,59 +38,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-
-      {/* ---------------- NAVBAR ---------------- */}
-      <nav className="w-full px-10 py-5 flex justify-between items-center shadow-sm bg-white">
-        
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-red-400 rounded-lg flex justify-center items-center text-white font-bold text-xl">
-            S
-          </div>
-          <h1 className="text-xl font-semibold">SkillSync</h1>
-        </div>
-
-        {/* Center Links */}
-        <div className="hidden md:flex gap-10 text-gray-700 font-medium">
-          <Link href="/courses">Courses</Link>
-          <Link href="/mentors">Mentors</Link>
-          <Link href="/resources">Resources</Link>
-        </div>
-
-        {/* Right Auth Section */}
-        <div className="flex gap-4">
-          {user ? (
-            <>
-              <span className="text-gray-800">Hello, {user.name}</span>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="text-gray-800 hover:text-black"
-              >
-                Login
-              </Link>
-
-              <Link
-                href="/signup"
-                className="px-4 py-2 bg-red-400 text-white rounded-lg hover:bg-red-500 transition"
-              >
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
-      </nav>
+      
 
       {/* ---------------- HERO SECTION ---------------- */}
-      <section className="flex flex-col items-center text-center mt-24 px-6">
+      <section className="flex flex-col items-center text-center  px-16 py-20">
         <h1 className="text-5xl md:text-6xl font-extrabold leading-tight">
           Level Up Your Skills With{" "}
           <span className="text-red-400">Expert Mentorship</span>

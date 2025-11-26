@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyToken } from "@/lib/jwt";
-import { getUserByEmail } from "@/lib/users";
+import prisma from "@/lib/prisma";
 export async function GET(request) {
   try {
     // Get token from cookie
@@ -12,7 +12,10 @@ export async function GET(request) {
     if (!decoded) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     } // Get user data
-    const user = getUserByEmail(decoded.email);
+    const user = await prisma.user.findUnique({
+      where: { email: decoded.email },
+      include: { student: true, mentor: true }
+    });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     } // Return user without password

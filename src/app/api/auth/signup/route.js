@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 
 export async function POST(request) {
   try {
-    const { email, password, name } = await request.json();
+    const { email, password, name, role } = await request.json();
 
     // Validate input
     if (!email || !password || !name) {
@@ -31,13 +31,27 @@ export async function POST(request) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the user in the database
+    const normalizedRole = (role === 'MENTOR' || role === 'STUDENT') ? role : 'STUDENT';
+
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
+        role: normalizedRole,
       },
     });
+
+    // Create role-specific profile
+    if (normalizedRole === 'STUDENT') {
+      await prisma.student.create({
+        data: { userId: user.id }
+      });
+    } else if (normalizedRole === 'MENTOR') {
+      await prisma.mentor.create({
+        data: { userId: user.id }
+      });
+    }
 
     // Generate JWT token
     const token = generateToken({ userId: user.id, email: user.email });

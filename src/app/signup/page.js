@@ -10,6 +10,7 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('STUDENT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,9 +20,14 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const res = await signup(name, email, password);
-      localStorage.setItem("token",res.token)
-      router.push('/');
+      const res = await signup(name, email, password, role);
+      localStorage.setItem("token", res.token);
+      // Immediately route to the selected role's dashboard
+      if (role === 'MENTOR') {
+        router.push('/dashboard/mentor');
+      } else {
+        router.push('/dashboard/student');
+      }
       router.refresh();
     } catch (err) {
       setError(err.message);
@@ -76,6 +82,34 @@ export default function SignupPage() {
                 className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-zinc-800 px-3 py-2 text-black dark:text-zinc-50 placeholder-gray-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 placeholder="Enter your email"
               />
+            </div>
+
+            <div>
+              <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sign up as</span>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="STUDENT"
+                    checked={role === 'STUDENT'}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="accent-red-500"
+                  />
+                  Student
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input
+                    type="radio"
+                    name="role"
+                    value="MENTOR"
+                    checked={role === 'MENTOR'}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="accent-red-500"
+                  />
+                  Mentor
+                </label>
+              </div>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">

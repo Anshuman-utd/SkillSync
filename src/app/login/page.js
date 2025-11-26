@@ -18,9 +18,20 @@ export default function LoginPage() {
 
     try {
       const res = await login(email, password);
-
-      localStorage.setItem("token",res.token)
-      router.push('/');
+      localStorage.setItem("token", res.token);
+      // Fetch current user to route to role-based dashboard
+      const meRes = await fetch('/api/auth/me');
+      if (meRes.ok) {
+        const data = await meRes.json();
+        const role = data.user?.role;
+        if (role === 'MENTOR') {
+          router.push('/dashboard/mentor');
+        } else {
+          router.push('/dashboard/student');
+        }
+      } else {
+        router.push('/');
+      }
       router.refresh();
     } catch (err) {
       setError(err.message);

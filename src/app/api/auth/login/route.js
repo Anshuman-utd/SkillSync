@@ -34,17 +34,20 @@ export async function POST(request) {
     // Create JWT
     const token = generateToken({ userId: user.id, email: user.email });
 
-    // Create response
+    // Create response and set cookie for /api/auth/me
     const response = NextResponse.json(
-      { message: 'Login successful', user },
+      { message: 'Login successful', token, user },
       { status: 200 }
     );
 
-    // FIX: Set the login cookie
-    return NextResponse.json(
-      { message: 'Login successful', token },
-      { status: 200 }
-    );
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return response;
     
 
   } catch (error) {
