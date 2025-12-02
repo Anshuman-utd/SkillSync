@@ -65,7 +65,7 @@ export default function Navbar() {
         <div className="w-9 h-9 bg-red-400 rounded-lg flex justify-center items-center text-white font-bold text-xl">
           S
         </div>
-        <Link href="/" className="text-xl font-semibold">SkillSync</Link>
+        <Link href="/" className="text-xl font-semibold text-black">SkillSync</Link>
       </div>
 
       {/* Center Links */}

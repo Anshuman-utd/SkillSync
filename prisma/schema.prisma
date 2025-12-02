@@ -1,3 +1,4 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -42,6 +43,8 @@ model Student {
   interests String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  Enrollment Enrollment[]
 }
 
 model Mentor {
@@ -53,4 +56,59 @@ model Mentor {
   expertise  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  Course Course[]
+}
+
+// ------------------- COURSE LEVEL ENUM -------------------
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// ------------------- CATEGORY MODEL ---------------------
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  courses   Course[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// ------------------- COURSE MODEL ------------------------
+model Course {
+  id            Int          @id @default(autoincrement())
+  title         String
+  description   String
+  image         String
+  durationWeeks Int
+  rating        Float         @default(0.0)
+  level         CourseLevel
+
+  // Relations
+  mentorId    Int
+  mentor      Mentor          @relation(fields: [mentorId], references: [id])
+
+  categoryId  Int
+  category    Category        @relation(fields: [categoryId], references: [id])
+
+  enrollments Enrollment[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+// ------------------- ENROLLMENT MODEL -------------------
+model Enrollment {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  courseId   Int
+
+  student    Student  @relation(fields: [studentId], references: [id])
+  course     Course   @relation(fields: [courseId], references: [id])
+
+  createdAt  DateTime @default(now())
+
+  @@unique([studentId, courseId]) // Prevent duplicate enrollments
 }
