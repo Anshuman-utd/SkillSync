@@ -7,36 +7,32 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         mentor: {
-          include: {
-            user: true,
-          },
+          include: { user: true }
         },
         category: true,
       },
     });
 
-    const formatted = courses.map((c) => ({
+    const formatted = (courses || []).map((c) => ({
       id: c.id,
       title: c.title,
       description: c.description,
       image: c.image,
-      rating: c.rating,
-      duration: (c.durationWeeks || 0) + " weeks",
+      rating: c.rating ?? 0,
+      duration: c.durationWeeks + " weeks",
       level: c.level,
-
-      // SAFE ACCESS (no crash)
       category: c.category?.name || "Uncategorized",
-      mentor: c.mentor?.user?.name || "Unknown Mentor",
+      categoryId: c.categoryId || null,
+      mentor: {
+        name: c.mentor?.user?.name || "Unknown Mentor",
+        email: c.mentor?.user?.email || null
+      }
     }));
 
     return NextResponse.json({ courses: formatted }, { status: 200 });
 
   } catch (error) {
-    console.error("❌ Error fetching courses:", error);
-
-    return NextResponse.json(
-      { error: "Failed to fetch courses" },
-      { status: 500 }
-    );
+    console.error("COURSES API ERROR:", error);
+    return NextResponse.json({ courses: [] }, { status: 200 });
   }
 }
