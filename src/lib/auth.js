@@ -18,13 +18,11 @@ export async function login(email, password) {
   return data;
 }
 
-export async function signup(name, email, password, role) {
+export const signup = async (name, email, password, role, skills) => {
   const response = await fetch('/api/auth/signup', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ name, email, password, role }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password, role, skills }),
   });
   
   const data = await response.json();

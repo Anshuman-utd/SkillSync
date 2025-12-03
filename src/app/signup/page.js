@@ -11,6 +11,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('STUDENT');
+  const [skills, setSkills] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +21,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const res = await signup(name, email, password, role);
+      const res = await signup(name, email, password, role, skills);
       localStorage.setItem("token", res.token);
       // Immediately route to the selected role's dashboard
       if (role === 'MENTOR') {
@@ -111,6 +112,24 @@ export default function SignupPage() {
                 </label>
               </div>
             </div>
+
+            {role === 'MENTOR' && (
+              <div>
+                <label htmlFor="skills" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Skills (comma separated)
+                </label>
+                <input
+                  id="skills"
+                  name="skills"
+                  type="text"
+                  value={skills}
+                  onChange={(e) => setSkills(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white px-3 py-2 text-black placeholder-gray-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  placeholder="e.g. React, Node.js, Python"
+                />
+              </div>
+            )}
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Password

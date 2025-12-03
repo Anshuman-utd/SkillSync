@@ -1,38 +1,146 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { verifyToken } from "@/lib/jwt";
 
-export async function GET() {
+// GET ALL COURSES
+export async function GET(req) {
   try {
-    const courses = await prisma.course.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        mentor: {
-          include: { user: true }
-        },
-        category: true,
-      },
-    });
+    const { searchParams } = new URL(req.url);
+    const featured = searchParams.get("featured");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "100"); // Default high limit if not specified
+    const skip = (page - 1) * limit;
 
-    const formatted = (courses || []).map((c) => ({
+    const where = {};
+    if (featured === "true") {
+      where.isFeatured = true;
+    }
+
+    const [courses, total] = await Promise.all([
+      prisma.course.findMany({
+        where,
+        include: {
+          mentor: {
+            include: { user: true },
+          },
+          category: true,
+          _count: {
+            select: { enrollments: true }
+          }
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.course.count({ where }),
+    ]);
+
+    const formatted = courses.map((c) => ({
       id: c.id,
       title: c.title,
       description: c.description,
       image: c.image,
-      rating: c.rating ?? 0,
-      duration: c.durationWeeks + " weeks",
+      duration: `${c.durationWeeks} weeks`,
+      rating: c.rating,
       level: c.level,
-      category: c.category?.name || "Uncategorized",
-      categoryId: c.categoryId || null,
-      mentor: {
-        name: c.mentor?.user?.name || "Unknown Mentor",
-        email: c.mentor?.user?.email || null
-      }
+      category: c.category.name,
+      categoryId: c.categoryId,
+      mentor: c.mentor.user.name,
+      mentorEmail: c.mentor.user.email,
+      mentorImage: c.mentor.user.image, // Include mentor image
+      studentCount: c._count.enrollments, // Dynamic student count
+      price: c.price,
+      status: c.status,
+      learningOutcomes: c.learningOutcomes,
+      isFeatured: c.isFeatured,
     }));
 
-    return NextResponse.json({ courses: formatted }, { status: 200 });
-
+    return NextResponse.json({ 
+      courses: formatted,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    }, { status: 200 });
   } catch (error) {
-    console.error("COURSES API ERROR:", error);
-    return NextResponse.json({ courses: [] }, { status: 200 });
+    console.log("GET /api/courses ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to load courses" },
+      { status: 500 }
+    );
+  }
+}
+
+// CREATE A COURSE
+export async function POST(req) {
+  try {
+    const token = req.cookies.get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded || !decoded.email) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: decoded.email },
+      include: { mentor: true },
+    });
+
+    if (!user || !user.mentor) {
+      return NextResponse.json(
+        { error: "Only mentors can create courses" },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json();
+    const {
+      title,
+      description,
+      imageUrl,
+      level,
+      durationWeeks,
+      categoryId,
+      price,
+      learningOutcomes,
+    } = body;
+
+    if (!title || !description || !categoryId) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const course = await prisma.course.create({
+      data: {
+        title,
+        description,
+        image: imageUrl || "",
+        level,
+        durationWeeks,
+        categoryId: Number(categoryId),
+        mentorId: user.mentor.id,
+        price: Number(price) || 0,
+        learningOutcomes: learningOutcomes || "",
+        status: "PUBLISHED", // Auto-publish
+      },
+    });
+
+    return NextResponse.json(
+      { message: "Course created successfully", course },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.log("POST /api/courses ERROR:", error);
+    return NextResponse.json(
+      { error: "Failed to create course" },
+      { status: 500 }
+    );
   }
 }

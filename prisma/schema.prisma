@@ -25,6 +25,7 @@ model User {
   email     String   @unique
   name      String?
   password  String
+  image     String?
   role      Role     @default(STUDENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -54,6 +55,7 @@ model Mentor {
   // Optional profile fields
   bio        String?
   expertise  String?
+  skills     String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -65,6 +67,11 @@ enum CourseLevel {
   BEGINNER
   INTERMEDIATE
   ADVANCED
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
 }
 
 // ------------------- CATEGORY MODEL ---------------------
@@ -84,6 +91,11 @@ model Course {
   image         String
   durationWeeks Int
   rating        Float         @default(0.0)
+  views         Int           @default(0)
+  price         Float         @default(0.0)
+  status        CourseStatus  @default(DRAFT)
+  learningOutcomes String? // Stored as JSON string
+  isFeatured    Boolean       @default(false)
   level         CourseLevel
 
   // Relations
@@ -107,8 +119,9 @@ model Enrollment {
 
   student    Student  @relation(fields: [studentId], references: [id])
   course     Course   @relation(fields: [courseId], references: [id])
-
   createdAt  DateTime @default(now())
+  progress   Int      @default(0)
+  completed  Boolean  @default(false)
 
   @@unique([studentId, courseId]) // Prevent duplicate enrollments
 }

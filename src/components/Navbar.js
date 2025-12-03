@@ -5,7 +5,16 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import LogoutButton from '@/components/LogoutButton';
 
-function InitialsAvatar({ name }) {
+function InitialsAvatar({ name, image }) {
+  if (image) {
+    return (
+      <img 
+        src={image} 
+        alt={name} 
+        className="w-8 h-8 rounded-full object-cover border border-gray-200"
+      />
+    );
+  }
   const initials = (name || '')
     .split(' ')
     .filter(Boolean)
@@ -13,7 +22,7 @@ function InitialsAvatar({ name }) {
     .map((n) => n[0]?.toUpperCase())
     .join('') || 'U';
   return (
-    <div className="w-8 h-8 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold">
+    <div className="w-8 h-8 rounded-full bg-red-400 text-white flex items-center justify-center font-semibold text-xs">
       {initials}
     </div>
   );
@@ -59,53 +68,72 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="w-full px-6 md:px-10 py-4 flex justify-between items-center shadow-sm bg-white sticky top-0 z-30">
+    <nav className="w-full px-6 md:px-16 py-4 flex justify-between items-center bg-white sticky top-0 z-50">
       {/* Logo */}
-      <div className="flex items-center gap-2">
-        <div className="w-9 h-9 bg-red-400 rounded-lg flex justify-center items-center text-white font-bold text-xl">
+      <Link href="/" className="flex items-center gap-2 group">
+        <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex justify-center items-center text-white font-bold text-xl shadow-md group-hover:shadow-lg transition-all">
           S
         </div>
-        <Link href="/" className="text-xl font-semibold text-black">SkillSync</Link>
-      </div>
+        <span className="text-xl font-bold text-gray-900 tracking-tight">SkillSync</span>
+      </Link>
 
       {/* Center Links */}
-      <div className="hidden md:flex gap-8 text-gray-700 font-medium">
-        <Link href="/courses">Courses</Link>
-        <Link href="/mentors">Mentors</Link>
-        <Link href="/resources">Resources</Link>
+      <div className="hidden md:flex items-center gap-8">
+        {[
+            ['Courses', '/courses'],
+            ['Mentors', '/mentors'],
+            ['Resources', '/resources']
+        ].map(([label, href]) => (
+            <Link 
+                key={href} 
+                href={href} 
+                className={`text-sm font-medium transition-colors ${
+                    pathname === href ? 'text-red-500' : 'text-gray-600 hover:text-gray-900'
+                }`}
+            >
+                {label}
+            </Link>
+        ))}
       </div>
 
       {/* Right Section */}
       <div className="flex items-center gap-4">
         {loading ? (
-          <div className="text-sm text-gray-600">Loading...</div>
+          <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
         ) : user ? (
-          <>
+          <div className="flex items-center gap-4">
             <Link
               href={user.role === 'MENTOR' ? '/dashboard/mentor' : '/dashboard/student'}
-              className="px-3 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+              className="hidden md:block px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition shadow-sm hover:shadow"
             >
               Dashboard
             </Link>
             <Link
               href="/profile"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition"
+              className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition"
             >
-              <InitialsAvatar name={user.name} />
-              <span className="text-gray-800">{user.name}</span>
+              <span className="text-sm font-medium text-gray-700 pl-2 hidden sm:block">{user.name?.split(' ')[0]}</span>
+              <InitialsAvatar name={user.name} image={user.image} />
             </Link>
-            <LogoutButton />
-          </>
+            <div className="hidden md:block">
+                <LogoutButton />
+            </div>
+          </div>
         ) : (
-          <>
-            <Link href="/login" className="text-gray-800 hover:text-black">Login</Link>
+          <div className="flex items-center gap-3">
+            <Link 
+                href="/login" 
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+            >
+                Log in
+            </Link>
             <Link
               href="/signup"
-              className="px-4 py-2 bg-red-400 text-white rounded-lg hover:bg-red-500 transition"
+              className="px-5 py-2.5 bg-red-500 text-white text-sm font-medium rounded-full hover:bg-red-600 transition shadow-md hover:shadow-lg shadow-red-200"
             >
               Sign Up
             </Link>
-          </>
+          </div>
         )}
       </div>
     </nav>

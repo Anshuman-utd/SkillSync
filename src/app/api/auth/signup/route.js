@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 
 export async function POST(request) {
   try {
-    const { email, password, name, role } = await request.json();
+    const { email, password, name, role, skills } = await request.json();
 
     // Validate input
     if (!email || !password || !name) {
@@ -49,7 +49,10 @@ export async function POST(request) {
       });
     } else if (normalizedRole === 'MENTOR') {
       await prisma.mentor.create({
-        data: { userId: user.id }
+        data: { 
+          userId: user.id,
+          skills: skills || "" 
+        }
       });
     }
 

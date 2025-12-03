@@ -1,35 +1,21 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Users, BookOpen, Star, TrendingUp, PlusCircle } from "lucide-react";
 
 export default function MentorDashboardPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [courses, setCourses] = useState([]);
-  const [categories, setCategories] = useState([]);
-
-  const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    level: "BEGINNER",
-    durationWeeks: 8,
-    imageFile: null,
-    categoryId: "",
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    activeCourses: 0,
+    avgRating: "0.0",
+    totalViews: 0,
   });
 
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    title: "",
-    description: "",
-    level: "BEGINNER",
-    durationWeeks: 8,
-    categoryId: "",
-  });
-
-  // ----------------- LOAD USER ----------------------
+  // ---------------- FETCH USER ----------------
   useEffect(() => {
     async function fetchUser() {
       const res = await fetch("/api/auth/me");
@@ -42,371 +28,170 @@ export default function MentorDashboardPage() {
     fetchUser();
   }, []);
 
-  // ----------------- LOAD CATEGORIES ----------------------
+  // ---------------- LOAD STATS & COURSES ----------------
   useEffect(() => {
-    async function loadCategories() {
-      const res = await fetch("/api/categories");
-      const data = await res.json();
-      setCategories(data.categories || []);
+    async function loadData() {
+      if (!user) return;
+
+      // Stats
+      const statsRes = await fetch("/api/stats/mentor");
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        setStats(data.stats);
+      }
+
+      // Courses (Limit to recent 3 for dashboard)
+      const coursesRes = await fetch("/api/courses");
+      if (coursesRes.ok) {
+        const data = await coursesRes.json();
+        const myCourses = (data.courses || []).filter(
+          (c) => c.mentorEmail === user.email
+        );
+        setCourses(myCourses.slice(0, 3));
+      }
     }
-    loadCategories();
-  }, []);
-
-  // ----------------- LOAD COURSES ----------------------
-  async function loadCourses() {
-    const res = await fetch("/api/courses");
-    const data = await res.json();
-
-    setCourses(
-      (data.courses || []).filter(
-        (c) => c.mentor?.email === user?.email || c.mentor === user?.name
-      )
-    );
-  }
-
-  useEffect(() => {
-    if (user) loadCourses();
+    loadData();
   }, [user]);
 
-  // ----------------- CREATE COURSE ----------------------
-  async function handleCreate(e) {
-    e.preventDefault();
-    setCreating(true);
-
-    try {
-      let imageUrl = null;
-
-      if (form.imageFile) {
-        const fd = new FormData();
-        fd.append("file", form.imageFile);
-
-        const up = await fetch("/api/upload", {
-          method: "POST",
-          body: fd,
-        });
-        const upData = await up.json();
-        imageUrl = upData.url;
-      }
-
-      const res = await fetch("/api/courses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-          imageUrl,
-          level: form.level,
-          durationWeeks: Number(form.durationWeeks),
-          categoryId: Number(form.categoryId),
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Course creation failed");
-      }
-
-      // Reset form
-      setForm({
-        title: "",
-        description: "",
-        level: "BEGINNER",
-        durationWeeks: 8,
-        imageFile: null,
-        categoryId: "",
-      });
-
-      await loadCourses();
-    } catch (err) {
-      console.error("CREATE ERROR:", err);
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  // ----------------- DELETE COURSE ----------------------
-  async function handleDelete(id) {
-    if (!confirm("Delete this course?")) return;
-    const res = await fetch(`/api/courses/${id}`, { method: "DELETE" });
-
-    if (res.ok) loadCourses();
-  }
-
-  // ----------------- UI STATES ----------------------
   if (loading) return <div className="p-6">Loading...</div>;
+  if (!user) return <div className="p-6">Please login.</div>;
 
-  if (!user)
-    return (
-      <div className="p-6">
-        Please <Link href="/login" className="text-red-500">login</Link>.
-      </div>
-    );
-
-  const isMentor = user.role === "MENTOR" || !!user.mentor;
-
-  if (!isMentor)
-    return (
-      <div className="p-6 text-red-500">
-        Access denied. This dashboard is for mentors.
-      </div>
-    );
-
-  // ----------------- MAIN UI ----------------------
   return (
-    <div className="min-h-screen bg-white text-black p-8">
-      <h1 className="text-2xl font-semibold mb-4">Mentor Dashboard</h1>
-      <p className="text-gray-700 mb-6">Welcome, {user.name}!</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* ---------------- ADD COURSE ---------------- */}
-        <div className="border rounded-lg p-4">
-          <h2 className="font-medium mb-3">Add a Course</h2>
-
-          <form className="space-y-3" onSubmit={handleCreate}>
-            <input
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Course Title"
-              className="w-full border rounded-md px-3 py-2"
-              required
-            />
-
-            <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              placeholder="Course Description"
-              className="w-full border rounded-md px-3 py-2"
-              required
-            />
-
-            {/* Level + Duration */}
-            <div className="flex gap-3">
-              <select
-                value={form.level}
-                onChange={(e) =>
-                  setForm({ ...form, level: e.target.value })
-                }
-                className="border rounded-md px-3 py-2"
-              >
-                <option value="BEGINNER">Beginner</option>
-                <option value="INTERMEDIATE">Intermediate</option>
-                <option value="ADVANCED">Advanced</option>
-              </select>
-
-              <input
-                type="number"
-                min={1}
-                value={form.durationWeeks}
-                onChange={(e) =>
-                  setForm({ ...form, durationWeeks: e.target.value })
-                }
-                className="border rounded-md px-3 py-2 w-32"
-                placeholder="Weeks"
-              />
+    <div>
+      {/* ---------------- STATS CARDS ---------------- */}
+      <div className="grid md:grid-cols-4 gap-6 mb-10">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-gray-500 font-medium text-sm">Total Students</p>
+              <h2 className="text-3xl font-bold mt-2 text-gray-900">
+                {stats.totalStudents.toLocaleString()}
+              </h2>
+              <p className="text-gray-400 text-xs mt-1">+180 this month</p>
             </div>
-
-            {/* Category Dropdown */}
-            <select
-              value={form.categoryId}
-              onChange={(e) =>
-                setForm({ ...form, categoryId: e.target.value })
-              }
-              className="border rounded-md px-3 py-2 w-full"
-              required
-            >
-              <option value="">Select Category</option>
-              {categories.map((c) => (
-                <option value={c.id} key={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Image Upload */}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  imageFile: e.target.files?.[0] || null,
-                })
-              }
-            />
-
-            <button
-              disabled={creating}
-              className="px-4 py-2 bg-red-400 text-white rounded-lg hover:bg-red-500"
-            >
-              {creating ? "Creating..." : "Create Course"}
-            </button>
-          </form>
-        </div>
-
-        {/* ---------------- MY COURSES ---------------- */}
-        <div className="border rounded-lg p-4">
-          <h2 className="font-medium mb-3">My Courses</h2>
-
-          <div className="space-y-3">
-            {courses.map((c) => (
-              <div
-                key={c.id}
-                className="border rounded-md p-3 flex items-center justify-between"
-              >
-                <div>
-                  <div className="font-medium">{c.title}</div>
-                  <div className="text-sm text-gray-600">
-                    {c.duration} • {c.level.toLowerCase()}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Link
-                    href={`/courses/${c.id}`}
-                    className="px-3 py-1 text-sm bg-gray-100 rounded-md"
-                  >
-                    View
-                  </Link>
-
-                  <button
-                    onClick={() => {
-                      setEditingId(c.id);
-                      setEditForm({
-                        title: c.title,
-                        description: c.description,
-                        level: c.level,
-                        durationWeeks: parseInt(c.duration),
-                        categoryId: c.categoryId || "",
-                      });
-                    }}
-                    className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-md"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(c.id)}
-                    className="px-3 py-1 text-sm bg-red-100 text-red-600 rounded-md"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+            <div className="p-2 bg-red-50 rounded-lg text-red-500">
+              <Users size={20} />
+            </div>
           </div>
-
-          {/* ---------------- EDIT FORM ---------------- */}
-          {editingId && (
-            <div className="mt-4 border rounded-md p-4">
-              <h3 className="font-medium mb-2">Edit Course</h3>
-
-              <form
-                className="space-y-3"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-
-                  const res = await fetch(`/api/courses/${editingId}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      title: editForm.title,
-                      description: editForm.description,
-                      level: editForm.level,
-                      durationWeeks: Number(editForm.durationWeeks),
-                      categoryId: Number(editForm.categoryId),
-                    }),
-                  });
-
-                  if (res.ok) {
-                    setEditingId(null);
-                    await loadCourses();
-                  }
-                }}
-              >
-                <input
-                  value={editForm.title}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, title: e.target.value })
-                  }
-                  className="w-full border rounded-md px-3 py-2"
-                />
-
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      description: e.target.value,
-                    })
-                  }
-                  className="w-full border rounded-md px-3 py-2"
-                />
-
-                <div className="flex gap-3">
-                  <select
-                    value={editForm.level}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, level: e.target.value })
-                    }
-                    className="border rounded-md px-3 py-2"
-                  >
-                    <option value="BEGINNER">Beginner</option>
-                    <option value="INTERMEDIATE">Intermediate</option>
-                    <option value="ADVANCED">Advanced</option>
-                  </select>
-
-                  <input
-                    type="number"
-                    value={editForm.durationWeeks}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        durationWeeks: e.target.value,
-                      })
-                    }
-                    className="border rounded-md px-3 py-2 w-32"
-                  />
-                </div>
-
-                {/* Edit Category */}
-                <select
-                  value={editForm.categoryId}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      categoryId: e.target.value,
-                    })
-                  }
-                  className="border rounded-md px-3 py-2 w-full"
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((c) => (
-                    <option value={c.id} key={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-gray-900 text-white rounded-md">
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(null)}
-                    className="px-4 py-2 bg-gray-100 rounded-md"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
         </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-gray-500 font-medium text-sm">Active Courses</p>
+              <h2 className="text-3xl font-bold mt-2 text-gray-900">
+                {stats.activeCourses}
+              </h2>
+              <p className="text-gray-400 text-xs mt-1">3 drafts</p>
+            </div>
+            <div className="p-2 bg-red-50 rounded-lg text-red-500">
+              <BookOpen size={20} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-gray-500 font-medium text-sm">Average Rating</p>
+              <h2 className="text-3xl font-bold mt-2 text-gray-900">
+                {stats.avgRating}
+              </h2>
+              <p className="text-gray-400 text-xs mt-1">850 reviews</p>
+            </div>
+            <div className="p-2 bg-red-50 rounded-lg text-red-500">
+              <Star size={20} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-gray-500 font-medium text-sm">Growth</p>
+              <h2 className="text-3xl font-bold mt-2 text-gray-900">{stats.totalViews}</h2>
+              <p className="text-gray-400 text-xs mt-1">Total views</p>
+            </div>
+            <div className="p-2 bg-red-50 rounded-lg text-red-500">
+              <TrendingUp size={20} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------- MY COURSES SECTION ---------------- */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">My Courses</h2>
+          <Link
+            href="/dashboard/mentor/courses/create"
+            className="px-4 py-2 bg-red-400 hover:bg-red-500 text-white rounded-lg flex items-center gap-2 font-medium transition-colors"
+          >
+            Add New Course
+          </Link>
+        </div>
+
+        <table className="w-full">
+          <thead>
+            <tr className="text-left text-gray-400 text-sm border-b border-gray-100">
+              <th className="py-4 font-medium w-1/3">Course Title</th>
+              <th className="py-4 font-medium">Students</th>
+              <th className="py-4 font-medium">Rating</th>
+              <th className="py-4 font-medium">Status</th>
+              <th className="py-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {courses.map((c) => (
+              <tr key={c.id} className="group hover:bg-gray-50 transition-colors">
+                <td className="py-4 font-medium text-gray-900">{c.title}</td>
+                <td className="py-4 text-gray-600">
+                  {c.studentCount || 0}
+                </td>
+                <td className="py-4 flex items-center gap-1 text-gray-900 font-medium">
+                  <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                  {c.rating || "0.0"}
+                </td>
+                <td className="py-4">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      c.status === "PUBLISHED"
+                        ? "bg-red-100 text-red-500"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {c.status || "Draft"}
+                  </span>
+                  {c.isFeatured && (
+                    <span className="ml-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-600">
+                        Featured
+                    </span>
+                  )}
+                </td>
+                <td className="py-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button className="px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:border-gray-300 transition-colors">
+                      Edit
+                    </button>
+                    <Link
+                      href={`/courses/${c.id}`}
+                      className="px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:border-gray-300 transition-colors"
+                    >
+                      View
+                    </Link>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {courses.length === 0 && (
+              <tr>
+                <td colSpan="5" className="py-8 text-center text-gray-500">
+                  No courses found. Create your first one!
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -1,25 +1,32 @@
+
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { Users } from "lucide-react";
 
 export default function Home() {
   const [user, setUser] = useState(null);
+  const [featuredCourses, setFeaturedCourses] = useState([]);
 
   useEffect(() => {
-    async function fetchUser() {
+    async function fetchData() {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
+        const authRes = await fetch("/api/auth/me");
+        if (authRes.ok) {
+          const data = await authRes.json();
           setUser(data.user);
-        } else setUser(null);
+        }
+
+        const coursesRes = await fetch("/api/courses?featured=true&limit=3", { cache: "no-store" });
+        const coursesData = await coursesRes.json();
+        setFeaturedCourses(coursesData.courses || []);
       } catch (err) {
-        setUser(null);
+        console.error("Failed to fetch data", err);
       }
     }
-    fetchUser();
+    fetchData();
   }, []);
 
   const handleLogout = async () => {
@@ -92,143 +99,98 @@ export default function Home() {
 
         {/* Cards */}
         <div className="grid md:grid-cols-3 gap-10 mt-12">
+          {featuredCourses.length > 0 ? (
+            featuredCourses.map((course) => (
+              <div key={course.id} className="bg-white rounded-xl shadow-md overflow-hidden p-3 relative group hover:shadow-lg transition-all">
+                <div className="relative h-48 rounded-lg overflow-hidden">
+                    <Image
+                    src={course.image}
+                    width={600}
+                    height={400}
+                    alt={course.title}
+                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className="absolute top-3 right-3 bg-red-400 text-white text-xs px-3 py-1 rounded-full shadow-sm">
+                    {course.category}
+                    </span>
+                </div>
 
-          {/* Card 1 */}
-          <div className="bg-white rounded-xl shadow-md overflow-hidden p-3">
-            <Image
-              src="/assets/course1.jpg"
-              width={600}
-              height={400}
-              alt="Course"
-              className="rounded-lg"
-            />
-            <span className="absolute mt-4 ml-4 bg-red-400 text-white text-xs px-3 py-1 rounded-full">
-              Web Dev
-            </span>
+                <div className="p-4">
+                  <h3 className="font-bold text-lg mb-2 line-clamp-1">{course.title}</h3>
 
-            <div className="p-4">
-              <h3 className="font-bold text-lg">Complete Web Development Bootcamp</h3>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                    {course.mentorImage ? (
+                        <img src={course.mentorImage} alt={course.mentor} className="w-6 h-6 rounded-full object-cover" />
+                    ) : (
+                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                            {course.mentor?.[0]}
+                        </div>
+                    )}
+                    <span>{course.mentor}</span>
+                  </div>
 
-              <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
-                <span>👩‍🏫 Sarah Johnson</span>
+                  <div className="flex items-center gap-2 mb-3 text-xs text-gray-500">
+                    <Users size={14} />
+                    <span>{course.studentCount || 0} students</span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <div className="flex items-center gap-1">
+                        <span>⭐</span>
+                        <span className="font-medium text-gray-900">{course.rating}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <span>⏳</span>
+                        <span>{course.duration}</span>
+                    </div>
+                  </div>
+
+                  <Link 
+                    href={`/courses/${course.id}`}
+                    className="block w-full bg-gray-900 text-white text-center py-2.5 rounded-lg font-medium hover:bg-gray-800 transition shadow-sm"
+                  >
+                    View Details
+                  </Link>
+                </div>
               </div>
-
-              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-                <span>⭐ 4.8</span>
-                <span>⏳ 12 weeks</span>
-              </div>
-
-              <span className="inline-block mt-4 text-xs bg-gray-100 px-3 py-1 rounded-full">
-                Beginner
-              </span>
-
-              <button className="w-full mt-4 bg-red-400 hover:bg-red-500 text-white py-2 rounded-lg transition">
-                View Details
-              </button>
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-10 text-gray-500">
+                No featured courses available at the moment.
             </div>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-white rounded-xl shadow-md overflow-hidden p-3">
-            <Image
-              src="/assets/course2.jpg"
-              width={600}
-              height={400}
-              alt="Course"
-              className="rounded-lg"
-            />
-            <span className="absolute mt-4 ml-4 bg-purple-500 text-white text-xs px-3 py-1 rounded-full">
-              UI/UX
-            </span>
-
-            <div className="p-4">
-              <h3 className="font-bold text-lg">UI/UX Design Masterclass</h3>
-
-              <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
-                <span>👨‍🏫 Mike Chen</span>
-              </div>
-
-              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-                <span>⭐ 4.9</span>
-                <span>⏳ 8 weeks</span>
-              </div>
-
-              <span className="inline-block mt-4 text-xs bg-gray-100 px-3 py-1 rounded-full">
-                Intermediate
-              </span>
-
-              <button className="w-full mt-4 bg-red-400 hover:bg-red-500 text-white py-2 rounded-lg transition">
-                View Details
-              </button>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="bg-white rounded-xl shadow-md overflow-hidden p-3">
-            <Image
-              src="/assets/course3.jpg"
-              width={600}
-              height={400}
-              alt="Course"
-              className="rounded-lg"
-            />
-            <span className="absolute mt-4 ml-4 bg-yellow-500 text-white text-xs px-3 py-1 rounded-full">
-              AI/ML
-            </span>
-
-            <div className="p-4">
-              <h3 className="font-bold text-lg">Machine Learning Fundamentals</h3>
-
-              <div className="flex items-center gap-3 mt-2 text-sm text-gray-600">
-                <span>👩‍🏫 Dr. Emily Rodriguez</span>
-              </div>
-
-              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-                <span>⭐ 4.7</span>
-                <span>⏳ 10 weeks</span>
-              </div>
-
-              <span className="inline-block mt-4 text-xs bg-gray-100 px-3 py-1 rounded-full">
-                Advanced
-              </span>
-
-              <button className="w-full mt-4 bg-red-400 hover:bg-red-500 text-white py-2 rounded-lg transition">
-                View Details
-              </button>
-            </div>
-          </div>
-
+          )}
         </div>
       </section>
 
       {/* -------------------------------- CATEGORIES SECTION ------------------------ */}
-      <section className="px-6 md:px-16 py-20">
-        <h2 className="text-3xl font-bold text-center">Browse by Category</h2>
-        <p className="text-gray-600 text-center mt-2">
-          Explore courses across various domains
-        </p>
+      <section className="px-6 md:px-16 py-20 bg-white">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900">Browse by Category</h2>
+          <p className="text-gray-500 mt-2">
+            Explore courses across various domains
+          </p>
+        </div>
 
         {/* Categories */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mt-12">
-
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            ["💻", "Web Development", 245],
-            ["🎨", "UI/UX Design", 182],
-            ["🤖", "AI & Machine Learning", 156],
-            ["☁️", "Cloud Computing", 128],
-            ["📱", "Mobile Development", 198],
-            ["📊", "Data Science", 174],
+            ["💻", "Web Dev", 245],
+            ["🎨", "UI/UX", 182],
+            ["🤖", "AI & ML", 156],
+            ["☁️", "Cloud", 128],
+            ["📱", "Mobile", 198],
+            ["📊", "Data", 174],
           ].map(([icon, name, count]) => (
-            <div
+            <Link
+              href={`/courses?category=${name}`}
               key={name}
-              className="flex flex-col items-center bg-gray-50 p-6 rounded-xl shadow hover:shadow-md cursor-pointer transition"
+              className="flex flex-col items-center justify-center p-6 rounded-xl border border-gray-100 hover:border-red-200 hover:shadow-md hover:bg-red-50 transition-all group cursor-pointer"
             >
-              <div className="text-4xl">{icon}</div>
-              <h3 className="mt-3 font-semibold">{name}</h3>
-              <p className="text-gray-500 text-sm">{count} courses</p>
-            </div>
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">{icon}</div>
+              <h3 className="font-semibold text-gray-900 text-sm">{name}</h3>
+              <p className="text-gray-400 text-xs mt-1">{count} courses</p>
+            </Link>
           ))}
-
         </div>
       </section>
 
