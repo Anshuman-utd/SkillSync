@@ -19,13 +19,13 @@ const categories = [
 ];
 
 const levels = ["All Levels", "Beginner", "Intermediate", "Advanced"];
-const sortOptions = ["Most Popular", "Rating", "Newest"];
+const sortOptions = ["Price: Low to High", "Price: High to Low"];
 
 export default function CoursesPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Categories");
   const [level, setLevel] = useState("All Levels");
-  const [sortBy, setSortBy] = useState("Most Popular");
+  const [sortBy, setSortBy] = useState("Price: Low to High");
   const [allCourses, setAllCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -44,7 +44,7 @@ export default function CoursesPage() {
           const authData = await authRes.json();
           setUser(authData.user);
           
-          if (authData.user.role === "STUDENT") {
+          if (authData.user && authData.user.role === "STUDENT") {
              const profileRes = await fetch("/api/users/profile");
              if (profileRes.ok) {
                 const profileData = await profileRes.json();
@@ -61,6 +61,9 @@ export default function CoursesPage() {
         if (category && category !== "All Categories") params.append("category", category);
         if (level && level !== "All Levels") params.append("level", level);
         if (search) params.append("search", search);
+        
+        if (sortBy === "Price: Low to High") params.append("sort", "price-asc");
+        if (sortBy === "Price: High to Low") params.append("sort", "price-desc");
 
         // Fetch Courses with Pagination & Filters
         const res = await fetch(`/api/courses?${params.toString()}`, { cache: "no-store" });
@@ -82,7 +85,7 @@ export default function CoursesPage() {
     }
   
     fetchData();
-  }, [page, category, level, search]);
+  }, [page, category, level, search, sortBy]);
 
   const handleEnroll = async (courseId) => {
     if (!user) {
@@ -118,14 +121,8 @@ export default function CoursesPage() {
   // ----------------------------------------------
   // Filtering Logic
   // ----------------------------------------------
-  const courses = useMemo(() => {
-    let filtered = [...allCourses];
-  
-    if (sortBy === "Rating") filtered.sort((a, b) => b.rating - a.rating);
-    if (sortBy === "Newest") filtered = filtered.reverse(); // Assuming API returns newest first, this might need adjustment if API sort changes
-  
-    return filtered;
-  }, [sortBy, allCourses]);
+  // Client-side sorting removed in favor of server-side sorting
+  const courses = allCourses;
   return (
     <div className="min-h-screen bg-white px-6 md:px-16 py-12">
 
@@ -279,7 +276,7 @@ export default function CoursesPage() {
                 View Details
               </Link>
 
-              {user?.role === "STUDENT" && (
+              {(!user || user.role === "STUDENT") && (
                 <button
                   onClick={() => handleEnroll(course.id)}
                   disabled={enrolledCourseIds.includes(course.id)}

@@ -28,6 +28,15 @@ export async function GET(req) {
       where.title = { contains: search, mode: "insensitive" };
     }
 
+    const sort = searchParams.get("sort"); // price-asc, price-desc
+
+    let orderBy = { createdAt: "desc" };
+    if (sort === "price-asc") {
+      orderBy = { price: "asc" };
+    } else if (sort === "price-desc") {
+      orderBy = { price: "desc" };
+    }
+
     const [courses, total] = await Promise.all([
       prisma.course.findMany({
         where,
@@ -40,7 +49,7 @@ export async function GET(req) {
             select: { enrollments: true }
           }
         },
-        orderBy: { createdAt: "desc" },
+        orderBy,
         skip,
         take: limit,
       }),
