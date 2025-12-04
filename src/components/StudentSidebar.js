@@ -15,15 +15,10 @@ export default function StudentSidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col sticky top-0 h-screen">
-      <div className="p-6 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <span className="w-8 h-8 bg-red-400 rounded-lg flex items-center justify-center text-white text-sm">S</span>
-          Student
-        </h2>
-      </div>
+    <aside className="w-64 hidden md:block bg-white shadow-sm border-r border-gray-100 min-h-screen p-6 sticky top-0 h-screen">
+      <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-6">Menu</h2>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="space-y-2 flex-1">
         {links.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.href;
@@ -31,9 +26,9 @@ export default function StudentSidebar() {
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 isActive
-                  ? "bg-red-50 text-red-500"
+                  ? "bg-red-50 text-red-500 font-medium"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >
@@ -44,8 +39,8 @@ export default function StudentSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
-        <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors">
+      <div className="pt-4 border-t border-gray-100">
+        <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors">
           <LogOut size={20} />
           Sign Out
         </button>

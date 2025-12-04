@@ -131,11 +131,11 @@ export default function StudentDashboardPage() {
               <tr key={c.id} className="group hover:bg-gray-50 transition-colors">
                 <td className="py-4 font-medium text-gray-900">
                     <div className="flex items-center gap-3">
-                        <img src={c.image} alt={c.title} className="w-10 h-10 rounded-lg object-cover" />
-                        <span>{c.title}</span>
+                        <img src={c.course?.image || "https://placehold.co/100"} alt={c.course?.title} className="w-10 h-10 rounded-lg object-cover" />
+                        <span>{c.course?.title}</span>
                     </div>
                 </td>
-                <td className="py-4 text-gray-600">{c.mentorName}</td>
+                <td className="py-4 text-gray-600">{c.course?.mentor?.user?.name || "Unknown"}</td>
                 <td className="py-4">
                   <div className="w-24 bg-gray-200 rounded-full h-2">
                     <div
@@ -158,7 +158,7 @@ export default function StudentDashboardPage() {
                 </td>
                 <td className="py-4 text-right">
                   <Link
-                    href={`/courses/${c.id}`}
+                    href={`/courses/${c.courseId}`}
                     className="px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:border-gray-300 transition-colors"
                   >
                     Continue
@@ -169,7 +169,7 @@ export default function StudentDashboardPage() {
             {enrolledCourses.length === 0 && (
               <tr>
                 <td colSpan="5" className="py-8 text-center text-gray-500">
-                  You haven't enrolled in any courses yet.
+                  You havent enrolled in any courses yet.
                 </td>
               </tr>
             )}

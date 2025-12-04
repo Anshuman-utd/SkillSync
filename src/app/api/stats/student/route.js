@@ -43,29 +43,28 @@ export async function GET(req) {
       },
     });
 
-    // 3. Learning Hours (Sum of duration of completed/enrolled courses - simplified logic)
-    // For now, let's sum duration of all enrolled courses as "planned" hours, or just Mock if we don't track actual hours spent.
-    // Better: Sum duration of completed courses.
-    const completedEnrollments = await prisma.enrollment.findMany({
+    // 3. Learning Hours (Sum of duration of enrolled courses * 2 hours/week)
+    // This is an estimation based on course duration.
+    const allEnrolledCourses = await prisma.enrollment.findMany({
       where: {
         studentId: studentId,
-        completed: true,
       },
       include: {
         course: true,
       },
     });
-    const learningHours = completedEnrollments.reduce((acc, curr) => acc + (curr.course.durationWeeks * 2), 0); // Assuming 2 hours/week
+    
+    const learningHours = allEnrolledCourses.reduce((acc, curr) => {
+        // Assume 3 hours per week of course duration
+        const hours = (curr.course.durationWeeks || 0) * 3;
+        // Scale by progress (e.g. if 50% done, count 50% of total hours)
+        const progressFraction = (curr.progress || 0) / 100;
+        return acc + Math.round(hours * progressFraction);
+    }, 0);
 
     // 4. Progress (Average progress across all enrollments)
-    const allEnrollments = await prisma.enrollment.findMany({
-      where: {
-        studentId: studentId,
-      },
-    });
-    
-    const totalProgress = allEnrollments.reduce((acc, curr) => acc + (curr.progress || 0), 0);
-    const progress = allEnrollments.length > 0 ? Math.round(totalProgress / allEnrollments.length) : 0;
+    const totalProgress = allEnrolledCourses.reduce((acc, curr) => acc + (curr.progress || 0), 0);
+    const progress = allEnrolledCourses.length > 0 ? Math.round(totalProgress / allEnrolledCourses.length) : 0;
 
     return NextResponse.json({
       stats: {

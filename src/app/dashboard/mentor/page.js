@@ -170,9 +170,12 @@ export default function MentorDashboardPage() {
                 </td>
                 <td className="py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <button className="px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:border-gray-300 transition-colors">
+                    <Link 
+                      href={`/dashboard/mentor/courses/${c.id}/edit`}
+                      className="px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:border-gray-300 transition-colors"
+                    >
                       Edit
-                    </button>
+                    </Link>
                     <Link
                       href={`/courses/${c.id}`}
                       className="px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:border-gray-300 transition-colors"

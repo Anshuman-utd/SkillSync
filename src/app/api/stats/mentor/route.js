@@ -60,8 +60,7 @@ export async function GET(req) {
       },
     });
 
-    const totalRating = courses.reduce((acc, curr) => acc + (curr.rating || 0), 0);
-    const avgRating = courses.length > 0 ? (totalRating / courses.length).toFixed(1) : "0.0";
+    const avgRating = "0.0";
 
     // 4. Total Views (Growth proxy)
     const totalViews = courses.reduce((acc, curr) => acc + (curr.views || 0), 0);

@@ -3,99 +3,154 @@ import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/jwt';
 
 // GET /api/courses/[id]
-export async function GET(_request, { params }) {
+export async function GET(request, { params }) {
   try {
-    const id = Number(params.id);
+    const { id: idParam } = await params;
+    const id = Number(idParam);
+
+    if (!id || Number.isNaN(id)) {
+      return NextResponse.json(
+        { error: "Invalid course ID" },
+        { status: 400 }
+      );
+    }
+
+    const token = request.cookies.get('token')?.value;
+    let userId = null;
+
+    if (token) {
+        const decoded = verifyToken(token);
+        if (decoded) {
+            const user = await prisma.user.findUnique({ where: { email: decoded.email } });
+            userId = user?.id;
+        }
+    }
+
+    // Fetch the course with correct includes
     const course = await prisma.course.findUnique({
       where: { id },
       include: {
-        mentor: { include: { user: true } },
-        categories: { include: { category: true } },
+        mentor: {
+          include: {
+            user: true,
+          },
+        },
+        category: true,
+        enrollments: true, // for studentCount
       },
     });
-    if (!course) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    return NextResponse.json({ course });
+
+    if (!course) {
+      return NextResponse.json(
+        { error: "Course not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check enrollment status
+    let isEnrolled = false;
+    if (userId) {
+        const student = await prisma.student.findUnique({ where: { userId } });
+        if (student) {
+            // Check if student ID exists in the course's enrollments list
+            isEnrolled = course.enrollments.some(e => e.studentId === student.id);
+        }
+    }
+
+    // Compute student count
+    const studentCount = course.enrollments.length;
+
+    // Remove enrollments array from response to reduce payload size
+    const { enrollments, ...courseData } = course;
+
+    return NextResponse.json({
+      course: {
+        ...courseData,
+        studentCount,
+        isEnrolled
+      },
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("GET /api/courses/[id] ERROR:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
-// PATCH /api/courses/[id] - mentor owner only
-export async function PATCH(request, { params }) {
+// PUT /api/courses/[id] - Update course details
+export async function PUT(request, { params }) {
   try {
-    const id = Number(params.id);
+    const { id: idParam } = await params;
+    const id = Number(idParam);
+
+    if (!id || Number.isNaN(id)) {
+      return NextResponse.json({ error: "Invalid course ID" }, { status: 400 });
+    }
+
     const token = request.cookies.get('token')?.value;
-    const decoded = token ? verifyToken(token) : null;
-    if (!decoded) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const mentor = await prisma.mentor.findUnique({ where: { userId: decoded.userId } });
-    if (!mentor) return NextResponse.json({ error: 'Only mentors can update courses' }, { status: 403 });
+    const decoded = verifyToken(token);
+    if (!decoded || decoded.role !== 'MENTOR') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const existing = await prisma.course.findUnique({ where: { id } });
-    if (!existing || existing.mentorId !== mentor.id) {
-      return NextResponse.json({ error: 'Not allowed' }, { status: 403 });
+    const user = await prisma.user.findUnique({ where: { email: decoded.email } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const mentor = await prisma.mentor.findUnique({ where: { userId: user.id } });
+    if (!mentor) {
+      return NextResponse.json({ error: "Mentor profile not found" }, { status: 404 });
+    }
+
+    const existingCourse = await prisma.course.findUnique({ where: { id } });
+    if (!existingCourse) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+
+    if (existingCourse.mentorId !== mentor.id) {
+      return NextResponse.json({ error: "Unauthorized to edit this course" }, { status: 403 });
     }
 
     const body = await request.json();
-    const { title, description, imageUrl, level, durationWeeks, rating, categories } = body;
+    const {
+      title,
+      description,
+      categoryId,
+      level,
+      durationWeeks,
+      price,
+      imageUrl,
+      learningOutcomes,
+    } = body;
 
-    // Update base fields
-    const updated = await prisma.course.update({
+    const updatedCourse = await prisma.course.update({
       where: { id },
       data: {
         title,
         description,
-        imageUrl,
+        categoryId: Number(categoryId),
         level,
-        durationWeeks,
-        rating,
+        durationWeeks: Number(durationWeeks),
+        price: Number(price),
+        image: imageUrl || existingCourse.image,
+        learningOutcomes,
       },
     });
 
-    // Replace categories if provided
-    if (Array.isArray(categories)) {
-      // Clear existing
-      await prisma.courseCategory.deleteMany({ where: { courseId: id } });
-      const createManyData = [];
-      for (const nameOrSlug of categories) {
-        const slug = nameOrSlug.toLowerCase().replace(/\s+/g, '-');
-        let cat = await prisma.category.findFirst({ where: { OR: [{ slug }, { name: nameOrSlug }] } });
-        if (!cat) cat = await prisma.category.create({ data: { name: nameOrSlug, slug } });
-        createManyData.push({ courseId: id, categoryId: cat.id });
-      }
-      if (createManyData.length) {
-        await prisma.courseCategory.createMany({ data: createManyData });
-      }
-    }
+    return NextResponse.json({ course: updatedCourse });
 
-    return NextResponse.json({ course: updated });
   } catch (error) {
-    console.error('Course update error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("PUT /api/courses/[id] ERROR:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
-
-// DELETE /api/courses/[id] - mentor owner only
-export async function DELETE(request, { params }) {
-  try {
-    const id = Number(params.id);
-    const token = request.cookies.get('token')?.value;
-    const decoded = token ? verifyToken(token) : null;
-    if (!decoded) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-
-    const mentor = await prisma.mentor.findUnique({ where: { userId: decoded.userId } });
-    if (!mentor) return NextResponse.json({ error: 'Only mentors can delete courses' }, { status: 403 });
-
-    const existing = await prisma.course.findUnique({ where: { id } });
-    if (!existing || existing.mentorId !== mentor.id) {
-      return NextResponse.json({ error: 'Not allowed' }, { status: 403 });
-    }
-
-    await prisma.courseCategory.deleteMany({ where: { courseId: id } });
-    await prisma.course.delete({ where: { id } });
-    return NextResponse.json({ message: 'Deleted' });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-

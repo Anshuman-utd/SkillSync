@@ -4,7 +4,8 @@ import { verifyToken } from "@/lib/jwt";
 
 export async function POST(req, { params }) {
   try {
-    const { id: courseId } = params;
+    const { id: courseIdParam } = await params;
+    const courseId = Number(courseIdParam);
     const token = req.cookies.get("token")?.value;
 
     if (!token) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, BookOpen, Award, Clock, Upload, Edit2, Check, X } from "lucide-react";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -308,9 +309,9 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <button className="w-full py-2 bg-red-400 hover:bg-red-500 text-white text-sm rounded-lg font-medium transition-colors">
+                            <Link href={`/courses/${course.id}`} className="block w-full py-2 bg-red-400 hover:bg-red-500 text-white text-sm rounded-lg font-medium transition-colors text-center">
                                 View Details
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 ))}

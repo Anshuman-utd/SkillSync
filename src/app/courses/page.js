@@ -53,20 +53,36 @@ export default function CoursesPage() {
           }
         }
 
-        // Fetch Courses with Pagination
-        const res = await fetch(`/api/courses?page=${page}&limit=${LIMIT}`, { cache: "no-store" });
+        // Build Query String
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: LIMIT.toString(),
+        });
+        if (category && category !== "All Categories") params.append("category", category);
+        if (level && level !== "All Levels") params.append("level", level);
+        if (search) params.append("search", search);
+
+        // Fetch Courses with Pagination & Filters
+        const res = await fetch(`/api/courses?${params.toString()}`, { cache: "no-store" });
         const data = await res.json();
-        setAllCourses(data.courses);
-        setTotalPages(data.pagination.totalPages);
+
+        if (res.ok) {
+            setAllCourses(data.courses || []);
+            setTotalPages(data.pagination?.totalPages || 1);
+        } else {
+            console.error("API Error:", data.error);
+            setAllCourses([]);
+        }
       } catch (error) {
         console.error("Failed to fetch data:", error);
+        setAllCourses([]);
       } finally {
         setLoading(false);
       }
     }
   
     fetchData();
-  }, [page]);
+  }, [page, category, level, search]);
 
   const handleEnroll = async (courseId) => {
     if (!user) {
@@ -103,19 +119,13 @@ export default function CoursesPage() {
   // Filtering Logic
   // ----------------------------------------------
   const courses = useMemo(() => {
-    let filtered = allCourses.filter((course) => {
-      return (
-        (category === "All Categories" || course.category === category) &&
-        (level === "All Levels" || course.level === level) &&
-        course.title.toLowerCase().includes(search.toLowerCase())
-      );
-    });
+    let filtered = [...allCourses];
   
     if (sortBy === "Rating") filtered.sort((a, b) => b.rating - a.rating);
-    if (sortBy === "Newest") filtered = filtered.reverse();
+    if (sortBy === "Newest") filtered = filtered.reverse(); // Assuming API returns newest first, this might need adjustment if API sort changes
   
     return filtered;
-  }, [search, category, level, sortBy, allCourses]);
+  }, [sortBy, allCourses]);
   return (
     <div className="min-h-screen bg-white px-6 md:px-16 py-12">
 
@@ -207,25 +217,26 @@ export default function CoursesPage() {
         {courses.map((course) => (
           <div
             key={course.id}
-            className="bg-white shadow-md rounded-xl overflow-hidden p-3 relative"
+            className="bg-white shadow-md rounded-xl overflow-hidden p-3 relative flex flex-col h-full"
           >
             {/* Image */}
-            <Image
-              src={course.image}
-              width={600}
-              height={400}
-              alt={course.title}
-              className="rounded-lg"
-            />
+            <div className="relative h-48 w-full">
+                <Image
+                src={course.image}
+                fill
+                alt={course.title}
+                className="rounded-lg object-cover"
+                />
+            </div>
 
             {/* Category Tag */}
-            <span className="absolute top-4 right-4 bg-red-400 text-white px-3 py-1 rounded-full text-xs">
+            <span className="absolute top-4 right-4 bg-red-400 text-white px-3 py-1 rounded-full text-xs z-10">
               {course.category}
             </span>
 
-            <div className="p-4">
+            <div className="p-4 flex flex-col flex-grow">
               {/* Title */}
-              <h3 className="font-bold text-lg">{course.title}</h3>
+              <h3 className="font-bold text-lg line-clamp-2 min-h-[3.5rem]">{course.title}</h3>
 
               {/* Mentor */}
               <div className="flex items-center gap-2 mt-2">
@@ -236,7 +247,7 @@ export default function CoursesPage() {
                         {course.mentor?.[0]}
                     </div>
                 )}
-                <span className="text-sm text-gray-600">{course.mentor}</span>
+                <span className="text-sm text-gray-600 truncate">{course.mentor}</span>
               </div>
               
               <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
@@ -251,9 +262,14 @@ export default function CoursesPage() {
               </div>
 
               {/* Level */}
-              <span className="inline-block mt-4 text-xs bg-gray-100 px-3 py-1 rounded-full">
-                {course.level}
-              </span>
+              <div className="mt-4">
+                 <span className="inline-block text-xs bg-gray-100 px-3 py-1 rounded-full">
+                    {course.level}
+                 </span>
+              </div>
+
+              {/* Spacer to push buttons down */}
+              <div className="flex-grow"></div>
 
               {/* Button */}
               <Link

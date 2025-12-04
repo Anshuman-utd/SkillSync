@@ -7,6 +7,9 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const featured = searchParams.get("featured");
+    const category = searchParams.get("category");
+    const level = searchParams.get("level");
+    const search = searchParams.get("search");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "100"); // Default high limit if not specified
     const skip = (page - 1) * limit;
@@ -14,6 +17,15 @@ export async function GET(req) {
     const where = {};
     if (featured === "true") {
       where.isFeatured = true;
+    }
+    if (category && category !== "All Categories") {
+      where.category = { name: category };
+    }
+    if (level && level !== "All Levels") {
+      where.level = level.toUpperCase();
+    }
+    if (search) {
+      where.title = { contains: search, mode: "insensitive" };
     }
 
     const [courses, total] = await Promise.all([
@@ -41,7 +53,7 @@ export async function GET(req) {
       description: c.description,
       image: c.image,
       duration: `${c.durationWeeks} weeks`,
-      rating: c.rating,
+      rating: 0.0,
       level: c.level,
       category: c.category.name,
       categoryId: c.categoryId,

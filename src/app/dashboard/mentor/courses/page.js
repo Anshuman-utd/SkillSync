@@ -129,9 +129,12 @@ export default function MyCoursesPage() {
                 >
                   <Eye size={16} /> View
                 </Link>
-                <button className="flex-1 flex items-center justify-center gap-2 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                <Link 
+                  href={`/dashboard/mentor/courses/${course.id}/edit`}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                >
                   <Edit size={16} /> Edit
-                </button>
+                </Link>
                 <button
                   onClick={() => handleDelete(course.id)}
                   className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
