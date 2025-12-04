@@ -217,13 +217,21 @@ export default function CoursesPage() {
             className="bg-white shadow-md rounded-xl overflow-hidden p-3 relative flex flex-col h-full"
           >
             {/* Image */}
-            <div className="relative h-48 w-full">
-                <Image
-                src={course.image}
-                fill
-                alt={course.title}
-                className="rounded-lg object-cover"
-                />
+            {/* Image */}
+            <div className="relative h-48 w-full bg-gray-100 flex items-center justify-center">
+                {course.image ? (
+                    <Image
+                        src={course.image}
+                        fill
+                        alt={course.title}
+                        className="rounded-lg object-cover"
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                        <span className="text-4xl mb-2">📚</span>
+                        <span className="text-xs">No Image</span>
+                    </div>
+                )}
             </div>
 
             {/* Category Tag */}

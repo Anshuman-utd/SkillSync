@@ -199,7 +199,15 @@ export default function CreateCoursePage() {
           <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-red-300 transition-colors bg-gray-50">
             {form.imagePreview ? (
               <div className="relative w-full max-w-md mx-auto h-64 rounded-lg overflow-hidden group">
-                <img src={form.imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <img 
+                  src={form.imagePreview} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://via.placeholder.com/800x400?text=No+Image";
+                  }}
+                />
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, imageFile: null, imagePreview: null })}
