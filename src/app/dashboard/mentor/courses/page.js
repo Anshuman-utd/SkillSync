@@ -2,12 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Eye, Edit, Trash2, Star, Users } from "lucide-react";
+import { Plus, Eye, Edit, Trash2, Star, Users, PlusCircle } from "lucide-react";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 export default function MyCoursesPage() {
   const [user, setUser] = useState(null);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -30,11 +36,30 @@ export default function MyCoursesPage() {
     fetchData();
   }, []);
 
-  async function handleDelete(id) {
-    if (!confirm("Are you sure you want to delete this course?")) return;
-    const res = await fetch(`/api/courses/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      setCourses((prev) => prev.filter((c) => c.id !== id));
+  // Open modal instead of deleting immediately
+  function confirmDelete(course) {
+    setCourseToDelete(course);
+    setDeleteModalOpen(true);
+  }
+
+  async function handleDelete() {
+    if (!courseToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/courses/${courseToDelete.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setCourses((prev) => prev.filter((c) => c.id !== courseToDelete.id));
+        setDeleteModalOpen(false);
+        setCourseToDelete(null);
+      } else {
+        alert("Failed to delete course");
+      }
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      alert("An error occurred while deleting");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -146,7 +171,7 @@ export default function MyCoursesPage() {
                   <Edit size={16} /> Edit
                 </Link>
                 <button
-                  onClick={() => handleDelete(course.id)}
+                  onClick={() => confirmDelete(course)}
                   className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
                 >
                   <Trash2 size={18} />
@@ -172,6 +197,19 @@ export default function MyCoursesPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setCourseToDelete(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Course"
+        message={`Are you sure you want to delete "${courseToDelete?.title}"? This action cannot be undone and will remove all student enrollments.`}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }

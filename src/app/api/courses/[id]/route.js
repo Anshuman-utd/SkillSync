@@ -158,3 +158,67 @@ export async function PUT(request, { params }) {
     );
   }
 }
+
+// DELETE /api/courses/[id] - Delete a course
+export async function DELETE(request, { params }) {
+  try {
+    const { id: idParam } = await params;
+    const id = Number(idParam);
+
+    if (!id || Number.isNaN(id)) {
+      return NextResponse.json({ error: "Invalid course ID" }, { status: 400 });
+    }
+
+    const token = request.cookies.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: decoded.email } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (user.role !== 'MENTOR') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const mentor = await prisma.mentor.findUnique({ where: { userId: user.id } });
+    if (!mentor) {
+      return NextResponse.json({ error: "Mentor profile not found" }, { status: 404 });
+    }
+
+    const existingCourse = await prisma.course.findUnique({ where: { id } });
+    if (!existingCourse) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+
+    if (existingCourse.mentorId !== mentor.id) {
+      return NextResponse.json({ error: "Unauthorized to delete this course" }, { status: 403 });
+    }
+
+    // Use transaction to delete enrollments first, then the course
+    await prisma.$transaction([
+      prisma.enrollment.deleteMany({
+        where: { courseId: id },
+      }),
+      prisma.course.delete({
+        where: { id },
+      }),
+    ]);
+
+    return NextResponse.json({ message: "Course deleted successfully" });
+
+  } catch (error) {
+    console.error("DELETE /api/courses/[id] ERROR:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
