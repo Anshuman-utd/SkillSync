@@ -95,13 +95,17 @@ export async function PUT(request, { params }) {
     }
 
     const decoded = verifyToken(token);
-    if (!decoded || decoded.role !== 'MENTOR') {
+    if (!decoded) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({ where: { email: decoded.email } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (user.role !== 'MENTOR') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const mentor = await prisma.mentor.findUnique({ where: { userId: user.id } });
