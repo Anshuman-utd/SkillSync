@@ -72,7 +72,7 @@ export default function EditCoursePage({ params }) {
       }
     }
     loadData();
-  }, [courseId, router]);
+  }, [courseId]);
 
   const handleOutcomeChange = (index, value) => {
     const newOutcomes = [...outcomes];
