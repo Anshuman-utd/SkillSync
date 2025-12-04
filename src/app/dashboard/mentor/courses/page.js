@@ -73,11 +73,21 @@ export default function MyCoursesPage() {
           >
             {/* Image Section */}
             <div className="relative h-48 bg-gray-100">
-              <img
-                src={course.image || "https://placehold.co/600x400?text=No+Image"}
-                alt={course.title}
-                className="w-full h-full object-cover"
-              />
+              {course.image ? (
+                <img
+                  src={course.image}
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/600x400?text=No+Image";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <span className="text-sm">No Image</span>
+                </div>
+              )}
               <div className="absolute top-3 right-3 flex gap-2">
                 <button
                   onClick={() => toggleFeature(course.id)}

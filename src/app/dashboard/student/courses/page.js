@@ -45,6 +45,10 @@ export default function StudentCoursesPage() {
                   src={course.image}
                   alt={course.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/600x400?text=No+Image";
+                  }}
                 />
                 <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold text-gray-700">
                     {course.level}

@@ -286,7 +286,14 @@ export default function ProfilePage() {
                 {(isMentor ? profile.courses : profile.enrolledCourses)?.map((course) => (
                     <div key={course.id} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                         <div className="h-32 bg-gray-200 relative">
-                             <img src={course.image || "https://placehold.co/400"} className="w-full h-full object-cover" />
+                             <img 
+                               src={course.image || "https://placehold.co/400"} 
+                               className="w-full h-full object-cover" 
+                               onError={(e) => {
+                                 e.target.onerror = null;
+                                 e.target.src = "https://placehold.co/400?text=No+Image";
+                               }}
+                             />
                              <span className="absolute top-2 right-2 bg-red-400 text-white text-[10px] px-2 py-1 rounded-full uppercase font-bold tracking-wide">
                                 {course.level || "Course"}
                              </span>
