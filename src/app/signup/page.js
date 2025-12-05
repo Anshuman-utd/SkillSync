@@ -53,7 +53,7 @@ export default function SignupPage() {
           )}
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="name" className="block text-sm font-medium ">
                 Name
               </label>
               <input
@@ -69,7 +69,7 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="email" className="block text-sm font-medium ">
                 Email address
               </label>
               <input
@@ -86,9 +86,9 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <span className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sign up as</span>
+              <span className="block text-sm font-medium  mb-1">Sign up as</span>
               <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <label className="flex items-center gap-2 text-sm ">
                   <input
                     type="radio"
                     name="role"
@@ -99,7 +99,7 @@ export default function SignupPage() {
                   />
                   Student
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <label className="flex items-center gap-2 text-sm ">
                   <input
                     type="radio"
                     name="role"
@@ -115,7 +115,7 @@ export default function SignupPage() {
 
             {role === 'MENTOR' && (
               <div>
-                <label htmlFor="skills" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="skills" className="block text-sm font-medium ">
                   Skills (comma separated)
                 </label>
                 <input
@@ -131,7 +131,7 @@ export default function SignupPage() {
             )}
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="password" className="block text-sm font-medium ">
                 Password
               </label>
               <input

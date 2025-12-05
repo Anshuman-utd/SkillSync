@@ -130,3 +130,92 @@ export async function PUT(req) {
       return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
     }
   }
+
+// DELETE User
+export async function DELETE(req) {
+  try {
+    const token = req.cookies.get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    const userEmail = decoded.email;
+
+    // Use transaction to ensure complete cleanup
+    await prisma.$transaction(async (tx) => {
+      // 1. Find the user first to get IDs
+      const user = await tx.user.findUnique({
+        where: { email: userEmail },
+        include: { mentor: true, student: true }
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (user.role === 'MENTOR' && user.mentor) {
+        // --- Mentor Deletion Logic ---
+        // 1. Find all courses by this mentor
+        const courses = await tx.course.findMany({
+            where: { mentorId: user.mentor.id },
+            select: { id: true }
+        });
+        const courseIds = courses.map(c => c.id);
+
+        // 2. Delete all enrollments in these courses (from any student)
+        if (courseIds.length > 0) {
+            await tx.enrollment.deleteMany({
+                where: { courseId: { in: courseIds } }
+            });
+
+            // 3. Delete the courses
+            await tx.course.deleteMany({
+                where: { id: { in: courseIds } }
+            });
+        }
+        
+        // 4. Delete Mentor profile
+        await tx.mentor.delete({
+            where: { id: user.mentor.id }
+        });
+
+      } else if (user.role === 'STUDENT' && user.student) {
+        // --- Student Deletion Logic ---
+        // 1. Delete all enrollments by this student
+        await tx.enrollment.deleteMany({
+            where: { studentId: user.student.id }
+        });
+
+        // 2. Delete Student profile
+        await tx.student.delete({
+            where: { id: user.student.id }
+        });
+      }
+
+      // Finally, delete the User record
+      await tx.user.delete({
+        where: { id: user.id }
+      });
+    });
+
+    // Determine environment to set cookie correctly
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // Create response and clear cookie
+    const response = NextResponse.json({ message: "User deleted successfully" }, { status: 200 });
+    response.cookies.set("token", "", {
+        httpOnly: true,
+        expires: new Date(0), 
+        secure: isProduction,
+        path: "/",
+        sameSite: "strict",
+    });
+
+    return response;
+
+  } catch (error) {
+    console.error("DELETE /api/users/profile ERROR:", error);
+    return NextResponse.json({ error: error.message || "Failed to delete user" }, { status: 500 });
+  }
+}

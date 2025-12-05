@@ -1,6 +1,8 @@
+import Link from "next/link";
+
 export default function Footer() {
     return (
-      <footer className="bg-white border-t mt-0">
+      <footer className="bg-white  mt-0 sticky border-gray-200 border-t">
         <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
   
           {/* Logo + Description */}
@@ -21,9 +23,21 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Platform</h3>
             <ul className="space-y-2 text-gray-600">
-              <li className="hover:text-red-400 cursor-pointer">Courses</li>
-              <li className="hover:text-red-400 cursor-pointer">Mentors</li>
-              <li className="hover:text-red-400 cursor-pointer">Resources</li>
+              <li>
+                <Link href="/courses" className="hover:text-red-400 cursor-pointer">
+                  Courses
+                </Link>
+              </li>
+              <li>
+                <Link href="/mentors" className="hover:text-red-400 cursor-pointer">
+                  Mentors
+                </Link>
+              </li>
+              <li>
+                <Link href="/resources" className="hover:text-red-400 cursor-pointer">
+                  Resources
+                </Link>
+              </li>
             </ul>
           </div>
   
@@ -49,7 +63,7 @@ export default function Footer() {
   
         </div>
   
-        <div className="border-t mt-10">
+        <div className="border-t mt-10 border-gray-200 ">
           <p className="text-center text-gray-500 text-sm py-6">
             © {new Date().getFullYear()} SkillSync. All rights reserved.
           </p>

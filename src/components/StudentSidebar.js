@@ -4,13 +4,29 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, BookOpen, Heart, Settings, LogOut } from "lucide-react";
 
+import { logout } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+
 export default function StudentSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+        await logout();
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('auth:changed', { detail: { user: null } }));
+        }
+        router.push("/login");
+    } catch (error) {
+        console.error("Sign out failed", error);
+    }
+  };
 
   const links = [
     { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
     { name: "My Learning", href: "/dashboard/student/courses", icon: BookOpen },
-    { name: "Saved", href: "/dashboard/student/saved", icon: Heart },
+    { name: "My Resources", href: "/dashboard/student/resources", icon: Heart }, // Updated to Resources
     { name: "Settings", href: "/dashboard/student/settings", icon: Settings },
   ];
 
@@ -40,7 +56,10 @@ export default function StudentSidebar() {
       </nav>
 
       <div className="pt-4 border-t border-gray-100">
-        <button className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors">
+        <button 
+           onClick={handleSignOut}
+           className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors"
+        >
           <LogOut size={20} />
           Sign Out
         </button>

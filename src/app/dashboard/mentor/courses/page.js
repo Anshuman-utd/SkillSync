@@ -208,6 +208,7 @@ export default function MyCoursesPage() {
         onConfirm={handleDelete}
         title="Delete Course"
         message={`Are you sure you want to delete "${courseToDelete?.title}"? This action cannot be undone and will remove all student enrollments.`}
+        confirmText="Yes, Delete Course"
         isDeleting={isDeleting}
       />
     </div>
