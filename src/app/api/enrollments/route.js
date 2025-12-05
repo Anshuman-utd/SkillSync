@@ -37,6 +37,10 @@ export async function GET(req) {
                     include: {
                         user: true
                     }
+                },
+                category: true,
+                _count: {
+                    select: { enrollments: true }
                 }
             }
         },
@@ -55,6 +59,9 @@ export async function GET(req) {
             id: e.course.id,
             title: e.course.title,
             image: e.course.image,
+            level: e.course.level,
+            category: e.course.category,
+            studentCount: e.course._count.enrollments,
             mentor: {
                 user: {
                     name: e.course.mentor.user.name

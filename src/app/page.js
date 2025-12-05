@@ -6,9 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Users } from "lucide-react";
 
+   
+
 export default function Home() {
   const [user, setUser] = useState(null);
   const [featuredCourses, setFeaturedCourses] = useState([]);
+  const [mentors, setMentors] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -22,6 +25,16 @@ export default function Home() {
         const coursesRes = await fetch("/api/courses?featured=true&limit=3", { cache: "no-store" });
         const coursesData = await coursesRes.json();
         setFeaturedCourses(coursesData.courses || []);
+
+        // Fetch Mentors
+        const mentorsRes = await fetch("/api/mentors");
+        if (mentorsRes.ok) {
+            const mentorsData = await mentorsRes.json();
+            // Randomly select 3 mentors
+            const shuffled = (mentorsData.mentors || []).sort(() => 0.5 - Math.random());
+            setMentors(shuffled.slice(0, 3));
+        }
+
       } catch (err) {
         console.error("Failed to fetch data", err);
       }
@@ -191,6 +204,83 @@ export default function Home() {
               <p className="text-gray-400 text-xs mt-1">{count} courses</p>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* -------------------------------- MEET OUR MENTORS ------------------------ */}
+      <section className="px-6 md:px-16 py-20 bg-gray-50">
+        <div className="flex items-center justify-between mb-12">
+            <div>
+                <h2 className="text-3xl font-bold text-gray-900">Meet Our Mentors</h2>
+                <p className="text-gray-500 mt-2">Learn from industry-leading experts</p>
+            </div>
+            <Link href="/mentors" className="px-5 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+                View All Mentors
+            </Link>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+            {mentors.map((mentor) => (
+                <div key={mentor.id} className="bg-white rounded-2xl p-8 text-center border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="relative w-24 h-24 mx-auto mb-4">
+                        <img 
+                            src={mentor.image || "https://placehold.co/150x150?text=Mentor"} 
+                            alt={mentor.name}
+                            className="w-full h-full rounded-full object-cover border-4 border-red-50"
+                        />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">{mentor.name}</h3>
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
+                        <span className="flex items-center gap-1 text-yellow-500 font-medium">
+                            ⭐ {mentor.avgRating || "5.0"}
+                        </span>
+                        <span>({mentor.totalStudents || 0} students)</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap justify-center gap-2 mb-6">
+                        {mentor.skills.slice(0, 3).map((skill, i) => (
+                            <span key={i} className="px-3 py-1 bg-gray-900 text-white text-xs rounded-full">
+                                {skill}
+                            </span>
+                        ))}
+                    </div>
+
+                    <Link 
+                        href={`/profile/${mentor.id}`}
+                        className="block w-full py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                        View Profile
+                    </Link>
+                </div>
+            ))}
+            {mentors.length === 0 && (
+                 <div className="col-span-3 text-center py-10 text-gray-500">
+                    Loading mentors...
+                </div>
+            )}
+        </div>
+      </section>
+
+      {/* -------------------------------- WHY CHOOSE SKILLSYNC ------------------------ */}
+      <section className="px-6 md:px-16 py-24 bg-white text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Why Choose SkillSync?</h2>
+        <p className="text-gray-500 mb-16">Everything you need to succeed in your learning journey</p>
+
+        <div className="grid md:grid-cols-4 gap-8">
+            {[
+                { icon: "📖", title: "Curated Content", desc: "Access carefully selected courses and resources" },
+                { icon: "👥", title: "Expert Mentors", desc: "Connect with industry professionals" },
+                { icon: "🏵️", title: "Certificates", desc: "Earn recognized certificates upon completion" },
+                { icon: "📈", title: "Track Progress", desc: "Monitor your learning journey in real-time" },
+            ].map((item, i) => (
+                <div key={i} className="flex flex-col items-center">
+                    <div className="w-16 h-16 bg-red-50 rounded-xl flex items-center justify-center text-3xl text-red-500 mb-6">
+                        {item.icon}
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed max-w-xs">{item.desc}</p>
+                </div>
+            ))}
         </div>
       </section>
 

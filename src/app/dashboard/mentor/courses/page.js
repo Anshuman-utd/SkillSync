@@ -143,7 +143,7 @@ export default function MyCoursesPage() {
                 </div>
                 <div className="flex items-center gap-1 text-yellow-500">
                   <Star size={16} fill="currentColor" />
-                  <span className="font-medium text-gray-700">{course.rating || "4.8"}</span>
+                  <span className="font-medium text-gray-700">{course.rating || 0}</span>
                 </div>
               </div>
 

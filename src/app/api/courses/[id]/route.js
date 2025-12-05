@@ -49,11 +49,19 @@ export async function GET(request, { params }) {
 
     // Check enrollment status
     let isEnrolled = false;
+    let progress = 0;
+    let completed = false;
+
     if (userId) {
         const student = await prisma.student.findUnique({ where: { userId } });
         if (student) {
             // Check if student ID exists in the course's enrollments list
-            isEnrolled = course.enrollments.some(e => e.studentId === student.id);
+            const enrollment = course.enrollments.find(e => e.studentId === student.id);
+            if (enrollment) {
+                isEnrolled = true;
+                progress = enrollment.progress;
+                completed = enrollment.completed;
+            }
         }
     }
 
@@ -67,7 +75,9 @@ export async function GET(request, { params }) {
       course: {
         ...courseData,
         studentCount,
-        isEnrolled
+        isEnrolled,
+        progress,
+        completed
       },
     });
   } catch (error) {
