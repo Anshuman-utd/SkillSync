@@ -106,9 +106,21 @@ model Course {
   category    Category        @relation(fields: [categoryId], references: [id])
 
   enrollments Enrollment[]
+  resources   Resource[]
 
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+}
+
+// ------------------- RESOURCE MODEL ---------------------
+model Resource {
+  id        Int      @id @default(autoincrement())
+  title     String
+  fileUrl   String
+  courseId  Int
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ------------------- ENROLLMENT MODEL -------------------
