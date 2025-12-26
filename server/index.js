@@ -12,9 +12,10 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", 
-    methods: ["GET", "POST"]
-  }
+  origin: process.env.FRONTEND_URL,
+  methods: ["GET", "POST"],
+  credentials: true
+}
 });
 
 const prisma = new PrismaClient();
@@ -145,7 +146,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.SOCKET_PORT || 4000;
-server.listen(PORT, () => {
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Socket.IO server running on port ${PORT}`);
 });
