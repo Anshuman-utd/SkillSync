@@ -163,8 +163,8 @@ export default function ChatWindow({ chatId, title, onMessageSent }) {
                   {/* Bubble */}
                   <div className="flex flex-col">
                     <div className={`px-4 py-2.5 shadow-sm text-[15px] leading-relaxed break-words ${isMe
-                        ? 'bg-gradient-to-br from-red-500 to-red-600 text-white rounded-2xl rounded-tr-sm'
-                        : 'bg-white text-gray-800 border border-gray-100 rounded-2xl rounded-tl-sm'
+                      ? 'bg-gradient-to-br from-red-500 to-red-600 text-white rounded-2xl rounded-tr-sm'
+                      : 'bg-white text-gray-800 border border-gray-100 rounded-2xl rounded-tl-sm'
                       }`}>
                       {msg.content}
                     </div>
@@ -188,15 +188,15 @@ export default function ChatWindow({ chatId, title, onMessageSent }) {
             className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all text-gray-800 placeholder-gray-400"
             placeholder="Type your message..."
             value={newMessage}
-            disabled={!isConnected}
+            disabled={isSending}
             onChange={(e) => setNewMessage(e.target.value)}
           />
           <button
             type="submit"
             disabled={!newMessage.trim() || !isConnected}
             className={`p-3 rounded-full shadow-md transition-all duration-200 flex-shrink-0 ${!newMessage.trim() || !isConnected
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:scale-105 active:scale-95'
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:scale-105 active:scale-95'
               }`}
           >
             {isSending ? (

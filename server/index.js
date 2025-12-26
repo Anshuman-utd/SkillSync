@@ -38,7 +38,8 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   console.log('User connected (socket.user):', socket.user); 
-  const currentUserId = socket.user.userId || socket.user.id; // Fallback if token payload varies
+  const currentUserId = socket.user.id;
+
   if (!currentUserId) {
       console.error("CRITICAL: User ID not found in token payload!", socket.user);
   }
