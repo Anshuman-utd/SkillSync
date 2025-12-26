@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BookOpen, Heart, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, BookOpen, Heart, Settings, LogOut, MessageSquare } from "lucide-react";
 
 import { logout } from "@/lib/auth";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ export default function StudentSidebar() {
 
   const links = [
     { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
+    { name: "My Chats", href: "/dashboard/chats", icon: MessageSquare },
     { name: "My Learning", href: "/dashboard/student/courses", icon: BookOpen },
     { name: "My Resources", href: "/dashboard/student/resources", icon: Heart }, // Updated to Resources
     { name: "Settings", href: "/dashboard/student/settings", icon: Settings },

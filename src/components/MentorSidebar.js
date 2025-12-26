@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, BookOpen, PlusCircle, Settings, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, BookOpen, PlusCircle, Settings, FileText, LogOut, MessageSquare } from "lucide-react";
 import { logout } from "@/lib/auth";
 
 export default function MentorSidebar() {
@@ -23,6 +23,7 @@ export default function MentorSidebar() {
 
   const links = [
     { href: "/dashboard/mentor", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/chats", label: "My Chats", icon: MessageSquare },
     { href: "/dashboard/mentor/courses", label: "My Courses", icon: BookOpen },
     { href: "/dashboard/mentor/courses/create", label: "Add Course", icon: PlusCircle },
     { href: "/dashboard/mentor/resources", label: "Resources", icon: FileText },

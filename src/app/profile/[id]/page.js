@@ -88,19 +88,15 @@ export default function PublicProfilePage({ params }) {
                 </div>
                 </div>
 
-                <div className="mt-6">
-                    <button className="w-full bg-red-400 hover:bg-red-500 text-white py-3 rounded-xl font-medium shadow-sm shadow-red-100 transition-all">
-                        Send Message
-                    </button>
+                    <MessageButton mentorId={id} />
                 </div>
-            </div>
             </div>
 
             {/* ---------------- RIGHT COLUMN: DETAILS ---------------- */}
             <div className="md:col-span-2 space-y-6">
-            
-            {/* About Section */}
-            <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+                
+                {/* About Section */}
+                <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">About Me</h2>
                 <p className="text-gray-600 leading-relaxed">
                     {profile.bio || "This mentor hasn't written a bio yet."}
@@ -186,5 +182,92 @@ export default function PublicProfilePage({ params }) {
         </div>
       </div>
     </div>
-  );
+                );
+}
+
+function MessageButton({ mentorId }) {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleMessage = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            // Check auth
+            const authRes = await fetch('/api/auth/me');
+            if (!authRes.ok) {
+                router.push('/login');
+                return;
+            }
+            const authData = await authRes.json();
+            if (!authData.user) {
+                router.push('/login');
+                return;
+            }
+
+            if (authData.user.role !== 'STUDENT') {
+                setError("Only students can message mentors.");
+                setLoading(false);
+                return;
+            }
+
+            // 1. Check existing chats
+            const chatsRes = await fetch('/api/chats');
+            if (!chatsRes.ok) throw new Error("Failed to load chats");
+            const chatsData = await chatsRes.json();
+            
+            const targetChat = chatsData.chats.find(c => c.mentorId === parseInt(mentorId));
+
+            if (targetChat) {
+                router.push(`/dashboard/chats?chatId=${targetChat.chatId}`);
+                return;
+            }
+
+            // 2. If no chat, check enrollment
+            const enrollRes = await fetch('/api/enrollments');
+            if (!enrollRes.ok) throw new Error("Failed to check eligibility");
+            const enrollData = await enrollRes.json();
+
+            // Find valid enrollment with this mentor
+            const enrollment = enrollData.enrolled.find(e => e.course.mentorId === parseInt(mentorId));
+
+            if (!enrollment) {
+                 setError("You must be enrolled in a course by this mentor to message them.");
+                 setLoading(false);
+                 return;
+            }
+
+            // 3. Create Chat
+            const createRes = await fetch('/api/chats', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ courseId: enrollment.course.id })
+            });
+
+            if (!createRes.ok) throw new Error("Failed to start chat");
+            const createData = await createRes.json();
+            
+            router.push(`/dashboard/chats?chatId=${createData.chatId}`);
+
+        } catch (err) {
+            console.error(err);
+            setError("Something went wrong");
+        } finally {
+            // setLoading(false); // keep loading until redirect
+        }
+    };
+
+    return (
+        <div className="w-full mt-6">
+            <button 
+                onClick={handleMessage} 
+                disabled={loading}
+                className="w-full bg-red-400 hover:bg-red-500 text-white py-3 rounded-xl font-medium shadow-sm shadow-red-100 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+                {loading ? 'Checking...' : 'Send Message'}
+            </button>
+            {error && <p className="text-xs text-red-500 mt-2 text-center">{error}</p>}
+        </div>
+    );
 }

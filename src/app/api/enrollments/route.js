@@ -62,6 +62,7 @@ export async function GET(req) {
             level: e.course.level,
             category: e.course.category,
             studentCount: e.course._count.enrollments,
+            mentorId: e.course.mentorId,
             mentor: {
                 user: {
                     name: e.course.mentor.user.name

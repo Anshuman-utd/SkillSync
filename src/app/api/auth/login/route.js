@@ -32,7 +32,7 @@ export async function POST(request) {
     }
 
     // Create JWT
-    const token = generateToken({ userId: user.id, email: user.email });
+    const token = generateToken({ userId: user.id, email: user.email, role: user.role });
 
     // Create response and set cookie for /api/auth/me
     const response = NextResponse.json(

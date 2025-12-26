@@ -33,6 +33,7 @@ model User {
   // Relations
   student   Student?
   mentor    Mentor?
+  sentMessages Message[]
 }
 
 model Student {
@@ -46,6 +47,7 @@ model Student {
   updatedAt DateTime @updatedAt
 
   Enrollment Enrollment[]
+  chats      Chat[]
 }
 
 model Mentor {
@@ -60,6 +62,7 @@ model Mentor {
   updatedAt  DateTime @updatedAt
 
   Course Course[]
+  chats  Chat[]
 }
 
 // ------------------- COURSE LEVEL ENUM -------------------
@@ -110,6 +113,8 @@ model Course {
 
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+
+  chats        Chat[]
 }
 
 // ------------------- RESOURCE MODEL ---------------------
@@ -136,4 +141,41 @@ model Enrollment {
   completed  Boolean  @default(false)
 
   @@unique([studentId, courseId]) // Prevent duplicate enrollments
+}
+
+// ------------------- CHAT MODELS ------------------------
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  
+  courseId  Int
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  studentId Int
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  mentorId  Int
+  mentor    Mentor    @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  
+  messages  Message[]
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([courseId, studentId]) // One chat per student per course
+}
+
+model Message {
+  id          Int        @id @default(autoincrement())
+  content     String
+  
+  chatId      Int
+  chat        Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  
+  senderId    Int
+  sender      User       @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime   @default(now())
+  
+  @@index([chatId])
 }
