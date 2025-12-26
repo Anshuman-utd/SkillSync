@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import MentorSidebar from '@/components/MentorSidebar';
 import StudentSidebar from '@/components/StudentSidebar';
 import ChatList from '@/components/Chat/ChatList';
 import ChatWindow from '@/components/Chat/ChatWindow';
 
-export default function ChatsPage() {
+function ChatsContent() {
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
@@ -99,5 +99,13 @@ export default function ChatsPage() {
           </div>
       </div>
     </div>
+  );
+}
+
+export default function ChatsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <ChatsContent />
+    </Suspense>
   );
 }
