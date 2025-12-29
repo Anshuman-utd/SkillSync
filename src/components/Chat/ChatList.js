@@ -64,7 +64,7 @@ export default function ChatList({ onSelectChat, selectedChatId, refreshTrigger,
             <div
               key={chat.chatId}
               onClick={() => onSelectChat(chat)}
-              className={`group px-4 py-4 cursor-pointer transition-all duration-200 border-b border-gray-50 hover:bg-gray-50 flex items-center gap-4 ${
+              className={`group px-6 py-4 cursor-pointer transition-all duration-200 border-b border-gray-50 hover:bg-gray-50 flex items-center gap-4 ${
                 isSelected ? 'bg-red-50/60 hover:bg-red-50' : ''
               }`}
             >

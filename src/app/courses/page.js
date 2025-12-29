@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 import { Users } from "lucide-react";
+import CourseCard from "@/components/CourseCard";
 
 // Dummy data (replace with API fetch later)
 
@@ -43,25 +44,25 @@ export default function CoursesPage() {
         if (authRes.ok) {
           const authData = await authRes.json();
           setUser(authData.user);
-          
+
           if (authData.user && authData.user.role === "STUDENT") {
-             const profileRes = await fetch("/api/users/profile");
-             if (profileRes.ok) {
-                const profileData = await profileRes.json();
-                setEnrolledCourseIds(profileData.profile.enrolledCourses?.map(c => c.id) || []);
-             }
+            const profileRes = await fetch("/api/users/profile");
+            if (profileRes.ok) {
+              const profileData = await profileRes.json();
+              setEnrolledCourseIds(profileData.profile.enrolledCourses?.map(c => c.id) || []);
+            }
           }
         }
 
         // Build Query String
         const params = new URLSearchParams({
-            page: page.toString(),
-            limit: LIMIT.toString(),
+          page: page.toString(),
+          limit: LIMIT.toString(),
         });
         if (category && category !== "All Categories") params.append("category", category);
         if (level && level !== "All Levels") params.append("level", level);
         if (search) params.append("search", search);
-        
+
         if (sortBy === "Price: Low to High") params.append("sort", "price-asc");
         if (sortBy === "Price: High to Low") params.append("sort", "price-desc");
 
@@ -70,11 +71,11 @@ export default function CoursesPage() {
         const data = await res.json();
 
         if (res.ok) {
-            setAllCourses(data.courses || []);
-            setTotalPages(data.pagination?.totalPages || 1);
+          setAllCourses(data.courses || []);
+          setTotalPages(data.pagination?.totalPages || 1);
         } else {
-            console.error("API Error:", data.error);
-            setAllCourses([]);
+          console.error("API Error:", data.error);
+          setAllCourses([]);
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -83,7 +84,7 @@ export default function CoursesPage() {
         setLoading(false);
       }
     }
-  
+
     fetchData();
   }, [page, category, level, search, sortBy]);
 
@@ -100,7 +101,7 @@ export default function CoursesPage() {
     try {
       const res = await fetch(`/api/courses/${courseId}/enroll`, { method: "POST" });
       const data = await res.json();
-      
+
       if (res.ok) {
         alert("Enrolled successfully!");
         setEnrolledCourseIds([...enrolledCourseIds, courseId]);
@@ -157,50 +158,50 @@ export default function CoursesPage() {
       <div className="flex flex-wrap gap-4 mt-6">
         {/* Category */}
         <div className="relative">
-            <select
+          <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="appearance-none border border-gray-200 px-4 py-2 pr-8 rounded-lg bg-white text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-100 transition shadow-sm"
-            >
+          >
             {categories.map((cat) => (
-                <option key={cat}>{cat}</option>
+              <option key={cat}>{cat}</option>
             ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </div>
         </div>
 
         {/* Level */}
         <div className="relative">
-            <select
+          <select
             value={level}
             onChange={(e) => setLevel(e.target.value)}
             className="appearance-none border border-gray-200 px-4 py-2 pr-8 rounded-lg bg-white text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-100 transition shadow-sm"
-            >
+          >
             {levels.map((lvl) => (
-                <option key={lvl}>{lvl}</option>
+              <option key={lvl}>{lvl}</option>
             ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </div>
         </div>
 
         {/* Sort */}
         <div className="relative">
-            <select
+          <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="appearance-none border border-gray-200 px-4 py-2 pr-8 rounded-lg bg-white text-sm font-medium text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-100 transition shadow-sm"
-            >
+          >
             {sortOptions.map((opt) => (
-                <option key={opt}>{opt}</option>
+              <option key={opt}>{opt}</option>
             ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          </div>
         </div>
       </div>
 
@@ -212,93 +213,12 @@ export default function CoursesPage() {
       {/* -------------------------------- GRID OF COURSES -------------------------------- */}
       <div className="grid md:grid-cols-3 gap-10 mt-8">
         {courses.map((course) => (
-          <div
+          <CourseCard
             key={course.id}
-            className="bg-white shadow-md rounded-xl overflow-hidden p-3 relative flex flex-col h-full"
-          >
-            {/* Image */}
-            {/* Image */}
-            <div className="relative h-48 w-full bg-gray-100 flex items-center justify-center">
-                {course.image ? (
-                    <Image
-                        src={course.image}
-                        fill
-                        alt={course.title}
-                        className="rounded-lg object-cover"
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center text-gray-400">
-                        <span className="text-4xl mb-2">📚</span>
-                        <span className="text-xs">No Image</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Category Tag */}
-            <span className="absolute top-4 right-4 bg-red-400 text-white px-3 py-1 rounded-full text-xs z-10">
-              {course.category}
-            </span>
-
-            <div className="p-4 flex flex-col flex-grow">
-              {/* Title */}
-              <h3 className="font-bold text-lg line-clamp-2 min-h-[3.5rem]">{course.title}</h3>
-
-              {/* Mentor */}
-              <div className="flex items-center gap-2 mt-2">
-                {course.mentorImage ? (
-                    <img src={course.mentorImage} alt={course.mentor} className="w-6 h-6 rounded-full object-cover" />
-                ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
-                        {course.mentor?.[0]}
-                    </div>
-                )}
-                <span className="text-sm text-gray-600 truncate">{course.mentor}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                <Users size={14} />
-                <span>{course.studentCount || 0} students</span>
-              </div>
-
-              {/* Rating & Duration */}
-              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-                <span>⭐ {course.rating}</span>
-                <span>⏳ {course.duration}</span>
-              </div>
-
-              {/* Level */}
-              <div className="mt-4">
-                 <span className="inline-block text-xs bg-gray-100 px-3 py-1 rounded-full">
-                    {course.level}
-                 </span>
-              </div>
-
-              {/* Spacer to push buttons down */}
-              <div className="flex-grow"></div>
-
-              {/* Button */}
-              <Link
-                href={`/courses/${course.id}`}
-                className="block w-full mt-4 bg-red-400 hover:bg-red-500 text-white text-center py-2 rounded-lg transition"
-              >
-                View Details
-              </Link>
-
-              {(!user || user.role === "STUDENT") && (
-                <button
-                  onClick={() => handleEnroll(course.id)}
-                  disabled={enrolledCourseIds.includes(course.id)}
-                  className={`block w-full mt-2 text-center py-2 rounded-lg transition ${
-                    enrolledCourseIds.includes(course.id)
-                      ? "bg-green-100 text-green-600 cursor-default"
-                      : "bg-gray-100 hover:bg-gray-200 text-gray-800"
-                  }`}
-                >
-                  {enrolledCourseIds.includes(course.id) ? "Enrolled" : "Enroll Now"}
-                </button>
-              )}
-            </div>
-          </div>
+            course={course}
+            isEnrolled={enrolledCourseIds.includes(course.id)}
+            onEnroll={!enrolledCourseIds.includes(course.id) && user?.role === "STUDENT" ? handleEnroll : null}
+          />
         ))}
       </div>
 

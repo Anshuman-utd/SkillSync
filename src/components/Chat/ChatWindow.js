@@ -139,7 +139,7 @@ export default function ChatWindow({ chatId, title, onMessageSent }) {
       </div>
 
       {/* Messages Area - with subtle background pattern or texture if desired, keeping clean for now */}
-      <div className="w-full flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-2 custom-scrollbar bg-slate-50/30">
+      <div className="w-full flex-1 overflow-y-auto px-6 md:px-8 py-6 space-y-2 custom-scrollbar bg-slate-50/30">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full opacity-60 space-y-4">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-2xl">👋</div>
@@ -206,7 +206,7 @@ export default function ChatWindow({ chatId, title, onMessageSent }) {
 
           <input
             type="text"
-            className="flex-1 bg-transparent border-none focus:ring-0 px-2 py-2.5 text-gray-800 placeholder-gray-400 sm:text-sm"
+            className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 px-2 py-2.5 text-gray-800 placeholder-gray-400 sm:text-sm"
             placeholder="Message..."
             value={newMessage}
             disabled={isSending}
