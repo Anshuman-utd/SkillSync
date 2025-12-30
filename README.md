@@ -1,143 +1,158 @@
-# SkillSync
+# SkillSync – AI-Powered Skill Development Platform
 
-**SkillSync** is an AI-powered skill development platform designed to bridge the gap between students and mentors. It provides a structured environment for learning, course management, and real-time progress tracking.
+## Project Title
+**SkillSync – AI-Powered Skill Development & Mentorship Platform**
 
-## Features
+---
 
-- **Role-Based Dashboards**: Targeted experiences for **Students** and **Mentors**.
-- **Course Management**: Mentors can create, edit, and publish comprehensive courses.
-- **Enrollment & Tracking**: Students can enroll in courses and track their progress.
-- **Resource Library**: Curated learning materials.
-- **Secure Authentication**: JWT-based auth with secure cookies.
-- **Search & Filtering**: Advanced filtering by category, level, and price.
-- **Responsive Design**: Built with Tailwind CSS for a seamless mobile and desktop experience.
+## Problem Statement
+Students often struggle to find structured learning paths and direct access to mentors, while mentors lack a centralized platform to manage courses and track student engagement. SkillSync addresses this gap by providing a role-based, scalable platform where students can learn, enroll in courses, track progress, and communicate with mentors in real time.
 
-## Tech Stack
-
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Database**: [PostgreSQL](https://www.postgresql.org/) using [Prisma ORM](https://www.prisma.io/)
-- **Authentication**: JWT & Bcrypt
-- **Icons**: [Lucide React](https://lucide.dev/)
-
-
+---
 
 ## System Architecture
-**Architecture Flow**: Frontend (Next.js) → Backend (Next.js API Routes) → Database (PostgreSQL via Prisma)
+**Architecture Flow:**  
+Frontend (Next.js App Router) → Backend (Next.js API Routes + WebSocket Server) → Database (PostgreSQL via Prisma)
 
-### Frontend
-- **Next.js 16 (App Router)**: For robust routing and server-side rendering.
-- **Tailwind CSS v4**: For modern, responsive styling.
-- **Lucide React**: For consistent iconography.
-- **Axios / Fetch**: For HTTP requests.
+---
 
-### Backend
-- **Next.js API Routes**: Serverless functions handling business logic.
-- **Prisma ORM**: For type-safe database interactions.
-- **JWT Authentication**: Secure stateless authentication.
-- **Bcrypt**: For password hashing.
+## Frontend
+- Next.js 16 (App Router)
+- React 19
+- Tailwind CSS v4
+- Framer Motion for UI animations
+- Lucide React for icons
+- Fetch / Axios for HTTP requests
 
-### Database
-- **PostgreSQL**: Relational database for structured data (Users, Courses, Enrollments).
+---
 
-### Hosting
-- **Frontend & Backend**: Vercel (recommended for Next.js).
-- **Database**: Neon / Supabase / Railway (PostgreSQL providers).
+## Backend
+- Next.js API Routes
+- JWT authentication with HTTP-only cookies
+- bcrypt for password hashing
+- WebSocket server for real-time chat
+
+---
+
+## Database
+- PostgreSQL
+- Prisma ORM (type-safe queries)
+
+---
+
+## Hosting
+- Frontend & API: Vercel
+- Database: Neon / Supabase / Railway (PostgreSQL)
+- WebSocket Server: Render / Railway / VPS
+
+---
 
 ## Key Features
-- **Role-Based Access Control**: specialized dashboards for **Students** and **Mentors**.
-- **Authentication**: Secure Signup/Login with JWT and cookie-based sessions.
-- **Course Management**: Mentors can create, edit, and publish courses with rich details (images, duration, price, level).
-- **Enrollment System**: Students can browse, filter, and enroll in courses.
-- **Progress Tracking**: Students can track their learning progress (deduced from schema `Enrollment.progress`).
-- **Resource Library**: Curated resources for students.
-- **Advanced Search & Filtering**: Search courses by title; filter by category, level, and price.
-- **Dynamic Leaderboards & Stats**: Real-time statistics for mentors (student count, views) and students (courses enrolled).
+- **Role-Based Access Control:** Separate dashboards for Students and Mentors  
+- **Authentication & Authorization:** Secure JWT-based login/signup with cookies  
+- **Course Management:** Mentors can create, edit, publish, and delete courses  
+- **Enrollment System:** Students can enroll in courses and view progress  
+- **Progress Tracking:** Course progress tracked via enrollment schema  
+- **Real-Time Chat:** Mentor–Student chat using WebSockets  
+- **Search / Filtering:** Filter courses by category, level, and price  
+- **Pagination:** Server-side pagination for course listings  
+- **Animations:** Smooth UI transitions using Framer Motion  
+- **Responsive UI:** Mobile-first design with Tailwind CSS  
+
+---
 
 ## Tech Stack
-- **Frontend**: Next.js 16, Tailwind CSS 4, React 19
-- **Backend API**: Next.js API Routes, Prisma ORM
-- **Database**: PostgreSQL
-- **Authentication**: JWT, bcrypt
-- **Image Storage**: Cloudinary (deduced from `package.json` dependency)
+- **Frontend:** Next.js 16, React 19, Tailwind CSS v4, Framer Motion
+- **Backend:** Next.js API Routes, WebSockets
+- **Database:** PostgreSQL, Prisma ORM
+- **Authentication:** JWT, bcrypt
+- **Media Storage:** Cloudinary
+- **Hosting:** Vercel, Neon / Supabase / Railway
+
+---
 
 ## API Overview
-The application exposes a RESTful API under `/api`. All protected routes require a valid JWT token in cookies.
+All API routes are mounted under `/api`.  
+Protected routes require a valid JWT (stored in HTTP-only cookies).
 
+### Authentication
+| Endpoint | Method | Description | Access |
+|--------|--------|-------------|--------|
+| /api/auth/signup | POST | Register a new user (Student or Mentor) | Public |
+| /api/auth/login | POST | Authenticate user and set session cookie | Public |
 
-| **Category** | **Endpoint**            | **Method** | **Description**                                   | **Access**        |
-|--------------|--------------------------|------------|---------------------------------------------------|--------------------|
-| **Auth**     | `/api/auth/signup`       | POST       | Register a new user (Student or Mentor)           | Public             |
-|              | `/api/auth/login`        | POST       | Authenticate user & set HTTP-only cookie          | Public             |
-| **Courses**  | `/api/courses`           | GET        | Get all courses (supports filters & pagination)   | Public / Auth      |
-|              | `/api/courses`           | POST       | Create a new course                               | Mentor Only        |
-|              | `/api/courses/[id]`      | GET        | Get details of a single course                    | Public / Auth      |
-|              | `/api/courses/[id]`      | PUT        | Update course details (only mentor who owns it)   | Mentor Only        |
-|              | `/api/courses/[id]`      | DELETE     | Delete a course                                   | Mentor Only        |
-| **Mentors**  | `/api/mentors`           | GET        | List all mentors                                   | Public             |
-| **Users**    | `/api/profile`           | GET        | Get currently logged-in user profile               | Authenticated User |
-|              | `/api/profile`           | PUT        | Update profile information                         | Authenticated User |
+---
 
+### Courses
+| Endpoint | Method | Description | Access |
+|--------|--------|-------------|--------|
+| /api/courses | GET | Get all courses (filters & pagination) | Public / Auth |
+| /api/courses | POST | Create a new course | Mentor |
+| /api/courses/[id] | GET | Get course details | Public / Auth |
+| /api/courses/[id] | PUT | Update course (owner mentor only) | Mentor |
+| /api/courses/[id] | DELETE | Delete course (owner mentor only) | Mentor |
 
-## Getting Started
+---
 
-Follow these steps to run the project locally.
+### Mentors
+| Endpoint | Method | Description | Access |
+|--------|--------|-------------|--------|
+| /api/mentors | GET | List all mentors | Public |
+
+---
+
+### User Profile
+| Endpoint | Method | Description | Access |
+|--------|--------|-------------|--------|
+| /api/profile | GET | Get current user profile | Authenticated |
+| /api/profile | PUT | Update user profile | Authenticated |
+
+---
+
+## Real-Time Chat (WebSockets)
+- Persistent WebSocket connection
+- Enables instant mentor ↔ student messaging
+- Server hosted separately for scalability
+
+---
+
+## How to Run Locally
 
 ### Prerequisites
+- Node.js v18+
+- PostgreSQL database (Neon / Supabase / Railway recommended)
 
-- Node.js (v18 or higher)
-- A PostgreSQL database (local or cloud-hosted like Neon, Supabase, etc.)
+---
 
 ### Installation
+```bash
+git clone https://github.com/Anshuman-utd/SkillSync.git
+cd SkillSync
+npm install
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Anshuman-utd/SkillSync.git
-   cd SkillSync
-   ```
+---
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+### Environment Variables
 
-3. **Set up Environment Variables**:
-   Create a `.env` file in the root directory and add the following:
-   ```env
-   DATABASE_URL="postgresql://user:password@host:port/dbname?schema=public"
-   JWT_SECRET="your_jwt_secret_key"
-   
-   # Optional: Cloudinary for image uploads
-   CLOUDINARY_CLOUD_NAME="your_cloud_name"
-   CLOUDINARY_API_KEY="your_api_key"
-   CLOUDINARY_API_SECRET="your_api_secret"
-   ```
+Create a .env file in the root directory:
 
-4. **Initialize Database**:
-   ```bash
-   npx prisma generate
-   npx prisma migrate dev --name init
-   ```
+DATABASE_URL=postgresql://user:password@host:port/dbname?schema=public
+JWT_SECRET=your_jwt_secret
 
-5. **Run the Development Server**:
-   ```bash
-   npm run dev
-   ```
+# Cloudinary (optional)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 
-6. **Access the App**:
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## API Documentation
+Database Setup
 
-The API is built using Next.js Route Handlers.
+npx prisma generate
+npx prisma migrate dev --name init
 
-- **POST /api/auth/signup**: Register a new user.
-- **POST /api/auth/login**: Log in and receive a session cookie.
-- **GET /api/courses**: Fetch all courses (supports `search`, `category`, `level`, `page`, `limit`).
-- **POST /api/courses**: Create a new course (Mentor only).
-- **GET /api/courses/[id]**: specific course details.
-- **GET /api/profile**: Get current user's profile.
 
-## License
+Run Development Server
+npm run dev
 
-This project is licensed under the MIT License.
+
+Open http://localhost:3000
