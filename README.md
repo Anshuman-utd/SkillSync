@@ -1,7 +1,7 @@
-# SkillSync – AI-Powered Skill Development Platform
+# SkillSync – A Collaborative Student & Mentor Platform
 
 ## Project Title
-**SkillSync – AI-Powered Skill Development & Mentorship Platform**
+**SkillSync – A Collaborative Student & Mentor Platform**
 
 ---
 
